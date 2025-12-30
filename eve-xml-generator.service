@@ -1,0 +1,50 @@
+# EVE LI XML Generator Systemd Service (Optional)
+# =====================================================
+# 
+# This is an alternative to crontab using systemd timers.
+# More advanced but provides better logging and service management.
+#
+# Installation:
+# 1. Copy this file to /etc/systemd/system/eve-xml-generator.service
+# 2. Create timer file: /etc/systemd/system/eve-xml-generator.timer
+# 3. Enable and start: sudo systemctl enable --now eve-xml-generator.timer
+
+[Unit]
+Description=EVE LI XML Generator
+Documentation=https://github.com/svdleer/li
+After=network.target mysql.service
+
+[Service]
+Type=oneshot
+User=svdleer
+Group=svdleer
+WorkingDirectory=/home/svdleer/eve_li_xml_generator
+Environment="PATH=/home/svdleer/python/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStartPre=/bin/bash -c 'source /home/svdleer/python/venv/bin/activate'
+ExecStart=/home/svdleer/eve_li_xml_generator/run.sh --mode cron
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=eve-xml-generator
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/svdleer/eve_li_xml_generator/output /home/svdleer/eve_li_xml_generator/logs
+
+[Install]
+WantedBy=multi-user.target
+
+# Timer file content (save as eve-xml-generator.timer):
+# [Unit]
+# Description=Run EVE LI XML Generator weekdays at 9:00 AM
+# Requires=eve-xml-generator.service
+# 
+# [Timer]
+# OnCalendar=Mon..Fri 09:00:00
+# Persistent=true
+# RandomizedDelaySec=60
+# 
+# [Install]
+# WantedBy=timers.target
