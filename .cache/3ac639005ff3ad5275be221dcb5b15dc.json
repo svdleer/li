@@ -1,0 +1,762 @@
+{
+  "value": [
+    {
+      "id": 272075848,
+      "interfaceName": "eth 6/0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "172.28.51.25"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1014.a580"
+    },
+    {
+      "id": 272075849,
+      "interfaceName": "loopback 0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "212.142.13.41"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075850,
+      "interfaceName": "loopback 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "212.142.13.42"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075851,
+      "interfaceName": "loopback 7",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.251.11"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075852,
+      "interfaceName": "vlan 201",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "212.142.51.2"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075853,
+      "interfaceName": "vlan 251",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "212.142.52.2"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075854,
+      "interfaceName": "vlan 601",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.227.62"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075855,
+      "interfaceName": "vlan 651",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.227.58"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075856,
+      "interfaceName": "vlan 840",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "172.22.3.66"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075857,
+      "interfaceName": "vlan 890",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "172.22.3.70"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0017.1015.5f00"
+    },
+    {
+      "id": 272075858,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 25,
+          "addressUsage": "PRIMARY",
+          "ip": "10.160.38.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075859,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "77.250.36.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075860,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "92.110.181.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075861,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.7.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075862,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.8.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075863,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.9.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075864,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.19.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075865,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.20.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075866,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "212.187.111.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075867,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "212.187.114.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075868,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "212.187.115.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075869,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.181.236.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075870,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.182.12.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075871,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.182.84.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075872,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.182.176.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075873,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.119.240.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075874,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.119.244.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075875,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.119.248.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075876,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.251.200.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075877,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 22,
+          "addressUsage": "PRIMARY",
+          "ip": "10.251.204.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075878,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "62.194.246.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075879,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "62.194.247.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075880,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "62.195.37.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075881,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "62.195.138.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075882,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "62.195.193.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075883,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 25,
+          "addressUsage": "PRIMARY",
+          "ip": "10.128.212.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075884,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 25,
+          "addressUsage": "PRIMARY",
+          "ip": "10.32.212.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075885,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.168.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075886,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "178.85.226.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075887,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.245.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075888,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "95.96.247.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 272075889,
+      "interfaceName": "ip-bundle 1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "217.105.100.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    }
+  ],
+  "cached_at": "2026-01-03T21:22:24.902110",
+  "key": "device_interfaces_11040"
+}

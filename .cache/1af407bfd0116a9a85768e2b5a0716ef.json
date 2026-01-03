@@ -1,0 +1,168 @@
+{
+  "value": [
+    {
+      "id": 269924908,
+      "interfaceName": "cable-mac 1.0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "10.255.39.1"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "NL_CMTS_ACCESS",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924909,
+      "interfaceName": "link-aggregate 1.201",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.200.146"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "NL_CMTS_ACCESS",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924910,
+      "interfaceName": "link-aggregate 1.601",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.228.162"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "default",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924911,
+      "interfaceName": "link-aggregate 1.850",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.128.250"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "NL_MVPN_VIDEO_DAA_DIST",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924912,
+      "interfaceName": "link-aggregate 2.251",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.200.150"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "NL_CMTS_ACCESS",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924913,
+      "interfaceName": "link-aggregate 2.651",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.228.166"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "default",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924914,
+      "interfaceName": "link-aggregate 2.900",
+      "ip4Addresses": [
+        {
+          "prefixLength": 30,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.128.254"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "NL_MVPN_VIDEO_DAA_DIST",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924915,
+      "interfaceName": "loopback 0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.255.120"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "default",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269924916,
+      "interfaceName": "ethernet 7/0.0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "172.27.158.7"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "default",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    }
+  ],
+  "cached_at": "2026-01-03T21:22:16.211407",
+  "key": "device_interfaces_12985"
+}

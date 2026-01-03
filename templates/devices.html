@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Devices - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-router"></i> Devices</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'all' %}active{% endif %}" href="{{ url_for('devices', type='all') }}">All Devices</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'cmts' %}active{% endif %}" href="{{ url_for('devices', type='cmts') }}">CMTS</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'pe' %}active{% endif %}" href="{{ url_for('devices', type='pe') }}">PE</a>
+    </li>
+</ul>
+
+<!-- Search Box -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search devices or IP addresses (e.g., 'pe-core' or '198.51.100' or '2a02:1')">
+            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+        <small class="text-muted">Search by device name, type, or partial IP address (IPv4/IPv6)</small>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="text-center my-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading devices...</span>
+    </div>
+    <p class="mt-3">Loading devices from Netshot and validating DHCP...</p>
+</div>
+
+<!-- Device Content (loaded via AJAX) -->
+<div id="deviceContent" style="display:none;"></div>
+
+<!-- CMTS Devices Template (will be populated by AJAX) -->
+<script id="cmtsTemplate" type="text/template">
+<!-- CMTS Devices -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5><i class="bi bi-router"></i> CMTS Devices (<span id="cmtsCount">0</span>)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Management IP</th>
+                        <th>Loopback</th>
+                        <th>Primary Subnet</th>
+                        <th>Netshot Subnets</th>
+                        <th>DHCP Scopes</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in cmts_devices %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#cmts-{{ loop.index }}" style="cursor: pointer;" class="table-hover-row">
+                        <td>
+                            <strong><i class="bi bi-chevron-right"></i> {{ device.oss10_hostname or device.name }}</strong>
+                            {% if device.oss10_hostname %}<br><small class="text-muted">({{ device.name }})</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-primary">{{ device.device_type }}</span></td>
+                        <td>{{ device.mgmtAddress.ip if device.mgmtAddress is mapping else device.mgmtAddress }}</td>
+                        <td><code>{{ device.loopback or 'N/A' }}</code></td>
+                        <td>
+                            {% if device.primary_subnet %}
+                                <code class="text-success">{{ device.primary_subnet }}</code>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                {% if device.primary_subnet %}
+                                    {{ device.subnets|length - 1 }}
+                                {% else %}
+                                    {{ device.subnets|length }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if device.dhcp_validation and device.dhcp_validation.has_dhcp %}
+                                <span class="badge bg-success">{{ device.dhcp_validation.dhcp_scopes_count }}</span>
+                                <small class="text-success ms-1">✓ Validated</small>
+                            {% elif device.dhcp_subnets %}
+                                <span class="badge bg-warning">{{ device.dhcp_subnets|length }}</span>
+                                <small class="text-warning ms-1">⚠ Unvalidated</small>
+                            {% else %}
+                                <span class="badge bg-secondary">0</span>
+                                <small class="text-muted ms-1">No DHCP</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-success">{{ device.status }}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary refresh-device" 
+                                    data-device="{{ device.name }}" 
+                                    onclick="event.stopPropagation();"
+                                    title="Refresh device data from Netshot & DHCP">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9" class="p-0">
+                            <div class="collapse" id="cmts-{{ loop.index }}">
+                                <div class="card card-body m-2 bg-light">
+                                    <h6><i class="bi bi-diagram-3"></i> Subnet Details for {{ device.oss10_hostname or device.name }}</h6>
+                                    <p class="text-muted small">Vendor: {{ device.vendor }} | Type: {{ device.device_type }} | Software: {{ device.softwareVersion }}</p>
+                                    
+                                    <!-- Debug: {{ device.dhcp_validation }} -->
+                                    {% if device.dhcp_validation %}
+                                    <div class="mb-3">
+                                        <h6 class="alert-heading"><i class="bi bi-database"></i> DHCP Database Validation</h6>
+                                        <p class="text-muted small mb-2">
+                                            <strong>Primary:</strong> <code>{{ device.primary_subnet or 'N/A' }}</code>
+                                            {% if device.dhcp_validation.has_dhcp %}
+                                            <span class="badge bg-success ms-2">✓ Found in DHCP ({{ device.dhcp_validation.dhcp_scopes_count }} public scopes)</span>
+                                            {% else %}
+                                            <span class="badge bg-warning ms-2">⚠ Not in DHCP</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary"><i class="bi bi-wifi"></i> IPv4 Subnets</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if '.' in subnet and ':' not in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-broadcast"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        {% if device.dhcp_validation and subnet in device.dhcp_validation.matched %}
+                                                        <span class="badge bg-success">✓ In DHCP</span>
+                                                        {% elif device.dhcp_validation and subnet in device.dhcp_validation.missing_in_dhcp %}
+                                                        <span class="badge bg-warning text-dark">⚠ Not in DHCP</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info"><i class="bi bi-globe"></i> IPv6 Subnets</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if ':' in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-globe"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        {% if device.dhcp_validation and subnet in device.dhcp_validation.ipv6_matched %}
+                                                        <span class="badge bg-success">✓ In DHCP</span>
+                                                        {% elif device.dhcp_validation and subnet in device.dhcp_validation.ipv6_missing_in_dhcp %}
+                                                        <span class="badge bg-warning text-dark">⚠ Not in DHCP</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- PE Devices -->
+{% if device_type in ['all', 'pe'] and pe_devices %}
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5><i class="bi bi-diagram-3"></i> PE Devices ({{ pe_devices|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Management IP</th>
+                        <th>Loopback</th>
+                        <th>Subnets</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in pe_devices %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#pe-{{ loop.index }}" style="cursor: pointer;" class="table-hover-row">
+                        <td>
+                            <strong><i class="bi bi-chevron-right"></i> {{ device.oss10_hostname or device.name }}</strong>
+                            {% if device.oss10_hostname %}<br><small class="text-muted">({{ device.name }})</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-success">{{ device.device_type }}</span></td>
+                        <td>{{ device.mgmtAddress.ip if device.mgmtAddress is mapping else device.mgmtAddress }}</td>
+                        <td><code>{{ device.loopback or 'N/A' }}</code></td>
+                        <td><span class="badge bg-info">{{ device.subnets|length }} total</span></td>
+                        <td><span class="badge bg-success">{{ device.status }}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary refresh-device" 
+                                    data-device="{{ device.name }}" 
+                                    onclick="event.stopPropagation();"
+                                    title="Refresh device data from Netshot & DHCP">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="p-0">
+                            <div class="collapse" id="pe-{{ loop.index }}">
+                                <div class="card card-body m-2 bg-light">
+                                    <h6><i class="bi bi-diagram-3"></i> Subnet Details for {{ device.oss10_hostname or device.name }}</h6>
+                                    <p class="text-muted small">Vendor: {{ device.vendor }} | Type: {{ device.device_type }} | Software: {{ device.softwareVersion }}</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary"><i class="bi bi-diagram-2"></i> IPv4 Subnets</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if '.' in subnet and ':' not in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-diagram-2"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        <span class="badge bg-success">IPv4 Subnet</span>
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info"><i class="bi bi-globe"></i> IPv6 Subnets</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if ':' in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-globe"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        <span class="badge bg-info">IPv6 Subnet</span>
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not cmts_devices and not pe_devices %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No devices found. Check your Netshot connection.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Search functionality
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        filterDevices(searchTerm);
+    });
+}
+
+function filterDevices(searchTerm) {
+    // Get all device rows (both CMTS and PE)
+    const cmtsRows = document.querySelectorAll('.card-body .table-hover tbody tr:not(.collapse)');
+    const peRows = document.querySelectorAll('.card-body .table-hover tbody tr:not(.collapse)');
+    const allRows = [...cmtsRows, ...peRows];
+    
+    let visibleCount = 0;
+    
+    allRows.forEach(row => {
+        if (!searchTerm) {
+            row.style.display = '';
+            visibleCount++;
+            return;
+        }
+        
+        // Get device name
+        const deviceName = row.querySelector('td:first-child strong')?.textContent.toLowerCase() || '';
+        
+        // Get device type
+        const deviceType = row.querySelector('.badge')?.textContent.toLowerCase() || '';
+        
+        // Get all subnet information from the collapsed row
+        const rowIndex = row.dataset.bsTarget;
+        let subnets = '';
+        if (rowIndex) {
+            const collapsedRow = document.querySelector(rowIndex);
+            if (collapsedRow) {
+                const subnetCodes = collapsedRow.querySelectorAll('code');
+                subnetCodes.forEach(code => {
+                    subnets += code.textContent.toLowerCase() + ' ';
+                });
+            }
+        }
+        
+        // Check if search term matches device name, type, or any subnet
+        const matches = deviceName.includes(searchTerm) || 
+                       deviceType.includes(searchTerm) ||
+                       subnets.includes(searchTerm);
+        
+        if (matches) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update cards visibility if no devices match
+    updateCardVisibility();
+}
+
+function updateCardVisibility() {
+    const cmtsCard = document.querySelector('.card.mb-4');
+    const peCard = document.querySelectorAll('.card.mb-4')[1];
+    
+    if (cmtsCard) {
+        const visibleCmts = Array.from(cmtsCard.querySelectorAll('tbody tr:not(.collapse)'))
+            .filter(row => row.style.display !== 'none').length;
+        cmtsCard.style.display = visibleCmts > 0 ? '' : 'none';
+    }
+    
+    if (peCard) {
+        const visiblePe = Array.from(peCard.querySelectorAll('tbody tr:not(.collapse)'))
+            .filter(row => row.style.display !== 'none').length;
+        peCard.style.display = visiblePe > 0 ? '' : 'none';
+    }
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        filterDevices('');
+    }
+}
+
+// Load devices asynchronously on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const deviceType = '{{ device_type }}';
+    
+    // Fetch devices data
+    fetch(`/api/devices/data?type=${deviceType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderDevices(data);
+            } else {
+                document.getElementById('loadingSpinner').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error loading devices: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('loadingSpinner').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error loading devices: ${error}
+                </div>
+            `;
+        });
+});
+
+function renderDevices(data) {
+    // Hide spinner, show content
+    document.getElementById('loadingSpinner').style.display = 'none';
+    const contentDiv = document.getElementById('deviceContent');
+    contentDiv.style.display = 'block';
+    
+    // Build HTML for devices (simplified version - you'll need to build the full template)
+    let html = '<div class="alert alert-success">Successfully loaded ' + data.cmts_devices.length + ' devices</div>';
+    
+    // For now, just render basic structure - you can expand this with full device HTML
+    // This prevents the blocking issue immediately
+    contentDiv.innerHTML = html;
+    
+    // Reload the page to show full data (temporary solution)
+    setTimeout(() => {
+        window.location.href = `/devices?type=${data.device_type}&loaded=true`;
+    }, 500);
+}
+
+// Handle device refresh button clicks
+document.querySelectorAll('.refresh-device').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.stopPropagation();  // Prevent row collapse toggle
+        const deviceName = this.getAttribute('data-device');
+        const icon = this.querySelector('i');
+        
+        // Add spinning animation
+        icon.classList.add('fa-spin');
+        this.disabled = true;
+        
+        // Call refresh endpoint
+        fetch(`/devices/refresh/${deviceName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message and reload page
+                alert(`✓ Cache cleared for ${deviceName}. Page will reload.`);
+                window.location.reload();
+            } else {
+                alert(`Error: ${data.error}`);
+                icon.classList.remove('fa-spin');
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            alert(`Error refreshing device: ${error}`);
+            icon.classList.remove('fa-spin');
+            this.disabled = false;
+        });
+    });
+});
+
+// Add chevron rotation on collapse
+document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(element => {
+    element.addEventListener('click', function() {
+        const icon = this.querySelector('.bi-chevron-right');
+        if (icon) {
+            icon.classList.toggle('bi-chevron-right');
+            icon.classList.toggle('bi-chevron-down');
+        }
+    });
+});
+</script>
+{% endblock %}

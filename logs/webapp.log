@@ -1,0 +1,68 @@
+2026-01-03 22:08:20,413 - eve_li_webapp - INFO - Starting EVE LI XML Generator (LOCAL DEV) v2.0
+2026-01-03 22:08:20,413 - eve_li_webapp - INFO - Debug mode: True
+2026-01-03 22:08:20,413 - eve_li_webapp - INFO - Listening on 127.0.0.1:8080
+ * Serving Flask app 'web_app'
+ * Debug mode: on
+2026-01-03 22:08:20,443 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8080
+2026-01-03 22:08:20,443 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-03 22:08:20,443 - werkzeug - INFO -  * Restarting with stat
+2026-01-03 22:08:20,609 - eve_li_webapp - INFO - Starting EVE LI XML Generator (LOCAL DEV) v2.0
+2026-01-03 22:08:20,609 - eve_li_webapp - INFO - Debug mode: True
+2026-01-03 22:08:20,609 - eve_li_webapp - INFO - Listening on 127.0.0.1:8080
+2026-01-03 22:08:20,629 - werkzeug - WARNING -  * Debugger is active!
+2026-01-03 22:08:20,636 - werkzeug - INFO -  * Debugger PIN: 104-769-449
+2026-01-03 22:08:31,367 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:31] "GET /api/health HTTP/1.1" 200 -
+2026-01-03 22:08:36,500 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:36] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:36,520 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:36,520 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:36] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:36,731 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:36] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,280 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:38,306 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,307 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,354 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,861 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:38,880 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,880 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:38,880 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:38] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,068 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,088 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,089 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,089 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,266 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,284 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,284 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,284 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,432 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,449 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,450 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,450 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,596 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,614 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,616 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,616 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,757 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,773 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,774 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,774 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,926 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:08:39,944 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/img/vodafoneziggo-logo.png HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,945 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-01-03 22:08:39,945 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:08:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-01-03 22:09:55,643 - eve_li_webapp - INFO - Debug mode: Using local dev user session
+2026-01-03 22:09:55,645 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:09:55] "GET /devices HTTP/1.1" 200 -
+2026-01-03 22:10:18,281 - eve_li_webapp - INFO - Debug mode: Using local dev user session
+2026-01-03 22:10:18,281 - cache_manager - INFO - Cache manager initialized: .cache
+2026-01-03 22:10:18,281 - cache_manager - INFO - Default TTL: 86400 seconds (24.0 hours)
+2026-01-03 22:10:18,281 - netshot_api - INFO - Caching enabled: TTL=86400s, dir=.cache
+2026-01-03 22:10:18,449 - dhcp_database - INFO - Connected to DHCP database at 127.0.0.1:3306
+2026-01-03 22:10:18,563 - app_cache - INFO - Connected to cache database: localhost:3307/li_xml
+2026-01-03 22:10:19,025 - eve_li_webapp - WARNING - DHCP cache lookup failed: 'str' object has no attribute 'get'
+2026-01-03 22:10:19,044 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 22:10:19] "GET /api/devices/data?type=cmts HTTP/1.1" 200 -
+2026-01-03 22:10:54,959 - werkzeug - INFO -  * Detected change in '/Users/silvester/PythonDev/Git/li/web_app.py', reloading
+2026-01-03 22:10:54,993 - werkzeug - INFO -  * Restarting with stat
+2026-01-03 22:10:55,239 - eve_li_webapp - INFO - Starting EVE LI XML Generator (LOCAL DEV) v2.0
+2026-01-03 22:10:55,239 - eve_li_webapp - INFO - Debug mode: True
+2026-01-03 22:10:55,239 - eve_li_webapp - INFO - Listening on 127.0.0.1:8080
+2026-01-03 22:10:55,261 - werkzeug - WARNING -  * Debugger is active!
+2026-01-03 22:10:55,268 - werkzeug - INFO -  * Debugger PIN: 104-769-449

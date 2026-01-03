@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}XML Status - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-file-earmark-code"></i> XML Status</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- XML Files -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-file-zip"></i> Generated XML Files</h5>
+    </div>
+    <div class="card-body">
+        {% if xml_files %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Generated</th>
+                        <th>Upload Status</th>
+                        <th>Upload Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in xml_files %}
+                    <tr>
+                        <td><i class="bi bi-file-zip"></i> {{ file.name }}</td>
+                        <td><span class="badge bg-{{ 'primary' if file.type == 'CMTS' else 'success' }}">{{ file.type }}</span></td>
+                        <td>{{ file.size_mb }} MB</td>
+                        <td>{{ file.modified_str }}</td>
+                        <td>
+                            {% if file.upload_status == 'success' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> SUCCESS</span>
+                            {% elif file.upload_status == 'failed' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> FAILED</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ file.upload_time }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewXML('{{ file.name }}')">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <a href="{{ url_for('download_xml', filename=file.name) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#response-{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-code-square"></i> Response
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="uploadXML('{{ file.name }}')">
+                                    <i class="bi bi-cloud-upload"></i> Re-upload
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="response-{{ loop.index }}">
+                        <td colspan="7" class="bg-light">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong><i class="bi bi-code-square"></i> Upload Response JSON</strong>
+                                </div>
+                                <div class="card-body">
+                                    <pre class="mb-0"><code>{{ file.response_json }}</code></pre>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No XML files found. Generate XML files from the dashboard.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Logs -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-journal-text"></i> Recent Logs</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_logs %}
+        <div class="list-group">
+            {% for log in recent_logs %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1"><i class="bi bi-file-text"></i> {{ log.name }}</h6>
+                    <small>{{ log.modified }}</small>
+                </div>
+                <small class="text-muted">{{ (log.size / 1024) | round(2) }} KB</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No log files found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Uploading...</span>
+                </div>
+                <p class="mt-3" id="uploadMessage">Uploading XML file...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View XML Modal -->
+<div class="modal fade" id="viewXMLModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <div>
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-code"></i> <span id="xmlFileName"></span></h5>
+                    <div class="mt-2">
+                        <span id="xmlValidBadge" class="badge bg-success" style="display: none;">
+                            <i class="bi bi-check-circle-fill"></i> Valid XML
+                        </span>
+                        <span id="xmlInvalidBadge" class="badge bg-danger" style="display: none;">
+                            <i class="bi bi-x-circle-fill"></i> Invalid XML
+                        </span>
+                        <span id="xmlStats" class="badge bg-info ms-2"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="xmlErrorMessage" class="alert alert-danger m-3" style="display: none;"></div>
+                
+                <!-- Search Box -->
+                <div class="p-3 bg-light border-bottom">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="xmlSearchInput" placeholder="Search for device name or IP address (e.g., 'cmts-ams' or '198.51.100' or '2a02:')">
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearXMLSearch()">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+                    <small id="xmlSearchResults" class="text-muted ms-2"></small>
+                </div>
+                
+                <pre class="bg-dark text-light m-0 p-3" style="max-height: 60vh; overflow-y: auto;"><code id="xmlContent" style="display: block; white-space: pre; tab-size: 2; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="validateXML()">
+                    <i class="bi bi-check-circle"></i> Validate XML
+                </button>
+                <button type="button" class="btn btn-primary" onclick="copyXMLToClipboard()">
+                    <i class="bi bi-clipboard"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentXMLContent = '';
+
+function viewXML(filename) {
+    // Always query fresh to handle Bootstrap modal recreation
+    setTimeout(() => {
+        const modalEl = document.getElementById('viewXMLModal');
+        if (!modalEl) {
+            console.error('Modal element not found');
+            return;
+        }
+        
+        const xmlFileName = modalEl.querySelector('#xmlFileName');
+        const xmlValidBadge = modalEl.querySelector('#xmlValidBadge');
+        const xmlInvalidBadge = modalEl.querySelector('#xmlInvalidBadge');
+        const xmlErrorMessage = modalEl.querySelector('#xmlErrorMessage');
+        const xmlStats = modalEl.querySelector('#xmlStats');
+        const xmlContent = modalEl.querySelector('#xmlContent');
+        const xmlSearchInput = modalEl.querySelector('#xmlSearchInput');
+        const xmlSearchResults = modalEl.querySelector('#xmlSearchResults');
+        
+        if (!xmlFileName || !xmlContent) {
+            console.error('Required modal elements not found');
+            return;
+        }
+        
+        // Set initial state
+        xmlFileName.textContent = filename;
+        if (xmlValidBadge) xmlValidBadge.style.display = 'none';
+        if (xmlInvalidBadge) xmlInvalidBadge.style.display = 'none';
+        if (xmlErrorMessage) xmlErrorMessage.style.display = 'none';
+        if (xmlSearchInput) xmlSearchInput.value = '';
+        if (xmlSearchResults) xmlSearchResults.textContent = '';
+        
+        // Fetch XML content
+        fetch(`/api/view-xml/${filename}`)
+            .then(response => response.text())
+            .then(xml => {
+                currentXMLContent = xml;
+                
+                // Format and display XML with syntax highlighting
+                xmlContent.innerHTML = formatXML(xml);
+                
+                // Auto-validate
+                validateXML();
+                
+                // Count elements
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xml, "text/xml");
+                const targets = xmlDoc.getElementsByTagName('Target').length;
+                const networks = xmlDoc.getElementsByTagName('Network').length;
+                if (xmlStats) {
+                    xmlStats.textContent = `${targets} Targets, ${networks} Networks`;
+                }
+                
+                // Show modal using Bootstrap
+                if (typeof bootstrap !== 'undefined') {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                } else {
+                    console.error('Bootstrap not loaded');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading XML:', error);
+                alert('Error loading XML: ' + error);
+            });
+    }, 10); // Small delay ensures DOM is ready
+}
+
+function formatXML(xml) {
+    // Escape HTML first - this converts < to &lt; and > to &gt;
+    xml = xml.replace(/&/g, '&amp;')
+             .replace(/</g, '&lt;')
+             .replace(/>/g, '&gt;')
+             .replace(/"/g, '&quot;');
+    
+    // Now apply syntax highlighting
+    // All our span tags use real < and >, while XML uses &lt; and &gt;
+    // This prevents patterns from matching our generated HTML
+    
+    // 1. Comments
+    xml = xml.replace(/(&lt;!--)(.*?)(--&gt;)/gs, '<span style="color:#6a9955">$1$2$3</span>');
+    
+    // 2. XML declaration
+    xml = xml.replace(/(&lt;\?xml[^?]*\?&gt;)/g, '<span style="color:#569cd6">$1</span>');
+    
+    // 3. Tags (opening and closing)
+    xml = xml.replace(/(&lt;\/?)([a-zA-Z_:][\w:\-\.]*)/g, '$1<span style="color:#4ec9b0">$2</span>');
+    
+    // 4. Attributes and their values (match together to avoid conflicts)
+    xml = xml.replace(/\s([a-zA-Z_:][\w:\-\.]*)=&quot;([^&]*)&quot;/g, ' <span style="color:#9cdcfe">$1</span>=<span style="color:#ce9178">&quot;$2&quot;</span>');
+    
+    return xml;
+}
+
+function validateXML() {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(currentXMLContent, "text/xml");
+    
+    const errorNode = xmlDoc.querySelector('parsererror');
+    const validBadge = document.getElementById('xmlValidBadge');
+    const invalidBadge = document.getElementById('xmlInvalidBadge');
+    const errorMessage = document.getElementById('xmlErrorMessage');
+    
+    if (errorNode) {
+        // Invalid XML
+        validBadge.style.display = 'none';
+        invalidBadge.style.display = 'inline-block';
+        errorMessage.textContent = 'XML Parsing Error: ' + errorNode.textContent;
+        errorMessage.style.display = 'block';
+    } else {
+        // Valid XML
+        validBadge.style.display = 'inline-block';
+        invalidBadge.style.display = 'none';
+        errorMessage.style.display = 'none';
+    }
+}
+
+function copyXMLToClipboard() {
+    navigator.clipboard.writeText(currentXMLContent).then(() => {
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }, 2000);
+    }).catch(err => {
+        alert('Failed to copy: ' + err);
+    });
+}
+
+function uploadXML(filename) {
+    if (!confirm(`Upload ${filename} to EVE LI server?`)) {
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+    const messageEl = document.getElementById('uploadMessage');
+    
+    messageEl.textContent = `Uploading ${filename}...`;
+    modal.show();
+    
+    fetch('/api/upload-xml', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename: filename })
+    })
+    .then(response => response.json())
+    .then(data => {
+        modal.hide();
+        if (data.success) {
+            alert('Upload successful: ' + data.message);
+        } else {
+            alert('Upload failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        modal.hide();
+        alert('Error: ' + error);
+    });
+}
+
+// XML Search functionality
+function searchXML() {
+    const searchInput = document.getElementById('xmlSearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const xmlContent = document.getElementById('xmlContent');
+    const searchResults = document.getElementById('xmlSearchResults');
+    
+    if (!xmlContent || !currentXMLContent) return;
+    
+    if (!searchTerm) {
+        // No search term - show original formatted XML
+        xmlContent.innerHTML = formatXML(currentXMLContent);
+        if (searchResults) searchResults.textContent = '';
+        return;
+    }
+    
+    // Format XML first
+    let formattedXML = formatXML(currentXMLContent);
+    
+    // Count matches in plain text
+    const plainText = currentXMLContent.toLowerCase();
+    const matches = (plainText.match(new RegExp(escapeRegExp(searchTerm), 'g')) || []).length;
+    
+    if (matches > 0) {
+        // Highlight matches (case-insensitive)
+        const searchRegex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+        formattedXML = formattedXML.replace(searchRegex, '<mark style="background-color:#ffeb3b;color:#000;font-weight:bold;">$1</mark>');
+        
+        if (searchResults) {
+            searchResults.textContent = `Found ${matches} match${matches !== 1 ? 'es' : ''}`;
+            searchResults.style.color = '#28a745';
+        }
+        
+        // Scroll to first match
+        xmlContent.innerHTML = formattedXML;
+        setTimeout(() => {
+            const firstMark = xmlContent.querySelector('mark');
+            if (firstMark) {
+                firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    } else {
+        xmlContent.innerHTML = formattedXML;
+        if (searchResults) {
+            searchResults.textContent = 'No matches found';
+            searchResults.style.color = '#dc3545';
+        }
+    }
+}
+
+function clearXMLSearch() {
+    const searchInput = document.getElementById('xmlSearchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        searchXML();
+    }
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Initialize search on modal show
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('xmlSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', searchXML);
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Escape') {
+                clearXMLSearch();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

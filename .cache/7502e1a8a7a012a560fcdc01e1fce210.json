@@ -1,0 +1,924 @@
+{
+  "value": [
+    {
+      "id": 269925113,
+      "interfaceName": "Loopback1",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.102"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    },
+    {
+      "id": 269925114,
+      "interfaceName": "Port-channel1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-DR[181/182] LAG-213 (Active/Active)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925115,
+      "interfaceName": "Port-channel1.2842",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.3"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP2 VLAN2842 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925116,
+      "interfaceName": "Port-channel1.2843",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.5"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP3 VLAN2843 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925117,
+      "interfaceName": "Port-channel1.2844",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.7"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP4 VLAN2844 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925118,
+      "interfaceName": "Port-channel1.2845",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.9"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP5 VLAN2845 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925119,
+      "interfaceName": "Port-channel1.2846",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.11"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP6 VLAN2846 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925120,
+      "interfaceName": "Port-channel1.2847",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.13"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP7 VLAN2847 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925121,
+      "interfaceName": "Port-channel1.2848",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.15"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP8 VLAN2848 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925122,
+      "interfaceName": "Port-channel1.2849",
+      "ip4Addresses": [
+        {
+          "prefixLength": 31,
+          "addressUsage": "PRIMARY",
+          "ip": "192.168.5.17"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "P2P OSN_INTERNAL GV-RC0011-CCAPV001-DP9 VLAN2849 (EVPN-MPLS)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d9"
+    },
+    {
+      "id": 269925123,
+      "interfaceName": "GigabitEthernet0/0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "172.16.88.55"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "Mgmt-vrf",
+      "virtualDevice": "",
+      "description": "OSN PORT ",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d980"
+    },
+    {
+      "id": 269925124,
+      "interfaceName": "GigabitEthernet1/0/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S1 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d981"
+    },
+    {
+      "id": 269925125,
+      "interfaceName": "GigabitEthernet1/0/2",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S2 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d982"
+    },
+    {
+      "id": 269925126,
+      "interfaceName": "GigabitEthernet1/0/3",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S3 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d983"
+    },
+    {
+      "id": 269925127,
+      "interfaceName": "GigabitEthernet1/0/4",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S4 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d984"
+    },
+    {
+      "id": 269925128,
+      "interfaceName": "GigabitEthernet1/0/5",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S5 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d985"
+    },
+    {
+      "id": 269925129,
+      "interfaceName": "GigabitEthernet1/0/6",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S6 MGMT PORT 1",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d986"
+    },
+    {
+      "id": 269925130,
+      "interfaceName": "GigabitEthernet1/0/7",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d987"
+    },
+    {
+      "id": 269925131,
+      "interfaceName": "GigabitEthernet1/0/8",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d988"
+    },
+    {
+      "id": 269925132,
+      "interfaceName": "GigabitEthernet1/0/9",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d989"
+    },
+    {
+      "id": 269925133,
+      "interfaceName": "GigabitEthernet1/0/10",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98a"
+    },
+    {
+      "id": 269925134,
+      "interfaceName": "GigabitEthernet1/0/11",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98b"
+    },
+    {
+      "id": 269925135,
+      "interfaceName": "GigabitEthernet1/0/12",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S1 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98c"
+    },
+    {
+      "id": 269925136,
+      "interfaceName": "GigabitEthernet1/0/13",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S2 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98d"
+    },
+    {
+      "id": 269925137,
+      "interfaceName": "GigabitEthernet1/0/14",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S3 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98e"
+    },
+    {
+      "id": 269925138,
+      "interfaceName": "GigabitEthernet1/0/15",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S4 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d98f"
+    },
+    {
+      "id": 269925139,
+      "interfaceName": "GigabitEthernet1/0/16",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S5 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d990"
+    },
+    {
+      "id": 269925140,
+      "interfaceName": "GigabitEthernet1/0/17",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S6 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d991"
+    },
+    {
+      "id": 269925141,
+      "interfaceName": "GigabitEthernet1/0/18",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d992"
+    },
+    {
+      "id": 269925142,
+      "interfaceName": "GigabitEthernet1/0/19",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d993"
+    },
+    {
+      "id": 269925143,
+      "interfaceName": "GigabitEthernet1/0/20",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d994"
+    },
+    {
+      "id": 269925144,
+      "interfaceName": "GigabitEthernet1/0/21",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d995"
+    },
+    {
+      "id": 269925145,
+      "interfaceName": "GigabitEthernet1/0/22",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d996"
+    },
+    {
+      "id": 269925146,
+      "interfaceName": "GigabitEthernet1/0/23",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d997"
+    },
+    {
+      "id": 269925147,
+      "interfaceName": "GigabitEthernet1/0/24",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "OSN PORT 1 (Active/Backup)",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d998"
+    },
+    {
+      "id": 269925148,
+      "interfaceName": "TenGigabitEthernet1/1/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-DR160 PORT 1/1/c14",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9c6"
+    },
+    {
+      "id": 269925149,
+      "interfaceName": "TenGigabitEthernet1/1/2",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d99a"
+    },
+    {
+      "id": 269925150,
+      "interfaceName": "TenGigabitEthernet1/1/3",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d99b"
+    },
+    {
+      "id": 269925151,
+      "interfaceName": "TenGigabitEthernet1/1/4",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-DR160 PORT 1/1/c14",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9f4"
+    },
+    {
+      "id": 269925152,
+      "interfaceName": "AppGigabitEthernet1/0/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d99d"
+    },
+    {
+      "id": 269925153,
+      "interfaceName": "GigabitEthernet2/0/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S1 MGMT PORT 2",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1381"
+    },
+    {
+      "id": 269925154,
+      "interfaceName": "GigabitEthernet2/0/2",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S2 MGMT PORT 2",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1382"
+    },
+    {
+      "id": 269925155,
+      "interfaceName": "GigabitEthernet2/0/3",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S3 MGMT PORT 2",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1383"
+    },
+    {
+      "id": 269925156,
+      "interfaceName": "GigabitEthernet2/0/4",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S4 MGMT PORT 2",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1384"
+    },
+    {
+      "id": 269925157,
+      "interfaceName": "GigabitEthernet2/0/5",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S5 MGMT PORT 2",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1385"
+    },
+    {
+      "id": 269925158,
+      "interfaceName": "GigabitEthernet2/0/6",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S6 MGMT PORT 2",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1386"
+    },
+    {
+      "id": 269925159,
+      "interfaceName": "GigabitEthernet2/0/7",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1387"
+    },
+    {
+      "id": 269925160,
+      "interfaceName": "GigabitEthernet2/0/8",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1388"
+    },
+    {
+      "id": 269925161,
+      "interfaceName": "GigabitEthernet2/0/9",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1389"
+    },
+    {
+      "id": 269925162,
+      "interfaceName": "GigabitEthernet2/0/10",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138a"
+    },
+    {
+      "id": 269925163,
+      "interfaceName": "GigabitEthernet2/0/11",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138b"
+    },
+    {
+      "id": 269925164,
+      "interfaceName": "GigabitEthernet2/0/12",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S1 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138c"
+    },
+    {
+      "id": 269925165,
+      "interfaceName": "GigabitEthernet2/0/13",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S2 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138d"
+    },
+    {
+      "id": 269925166,
+      "interfaceName": "GigabitEthernet2/0/14",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S3 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138e"
+    },
+    {
+      "id": 269925167,
+      "interfaceName": "GigabitEthernet2/0/15",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S4 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.138f"
+    },
+    {
+      "id": 269925168,
+      "interfaceName": "GigabitEthernet2/0/16",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S5 iDRAC (Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1390"
+    },
+    {
+      "id": 269925169,
+      "interfaceName": "GigabitEthernet2/0/17",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-CCAPV001-S6 iDRAC",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1391"
+    },
+    {
+      "id": 269925170,
+      "interfaceName": "GigabitEthernet2/0/18",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1392"
+    },
+    {
+      "id": 269925171,
+      "interfaceName": "GigabitEthernet2/0/19",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1393"
+    },
+    {
+      "id": 269925172,
+      "interfaceName": "GigabitEthernet2/0/20",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1394"
+    },
+    {
+      "id": 269925173,
+      "interfaceName": "GigabitEthernet2/0/21",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1395"
+    },
+    {
+      "id": 269925174,
+      "interfaceName": "GigabitEthernet2/0/22",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1396"
+    },
+    {
+      "id": 269925175,
+      "interfaceName": "GigabitEthernet2/0/23",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1397"
+    },
+    {
+      "id": 269925176,
+      "interfaceName": "GigabitEthernet2/0/24",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "OSN PORT 1 (Active/Backup)",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.1398"
+    },
+    {
+      "id": 269925177,
+      "interfaceName": "TenGigabitEthernet2/1/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9e4"
+    },
+    {
+      "id": 269925178,
+      "interfaceName": "TenGigabitEthernet2/1/2",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.139a"
+    },
+    {
+      "id": 269925179,
+      "interfaceName": "TenGigabitEthernet2/1/3",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.139b"
+    },
+    {
+      "id": 269925180,
+      "interfaceName": "TenGigabitEthernet2/1/4",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "GV-RC0011-DR161 PORT 1/1/c14",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9d5"
+    },
+    {
+      "id": 269925181,
+      "interfaceName": "AppGigabitEthernet2/0/1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "*** NOT IN USE *** ",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "b4ca.ddf7.139d"
+    },
+    {
+      "id": 269925182,
+      "interfaceName": "Vlan1",
+      "ip4Addresses": [],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": false,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9c7"
+    },
+    {
+      "id": 269925183,
+      "interfaceName": "Vlan2859",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "172.16.88.54"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "OSN_INTERNAL",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "a0c7.d27a.d9e1"
+    }
+  ],
+  "cached_at": "2026-01-03T21:19:57.876873",
+  "key": "device_interfaces_13918"
+}

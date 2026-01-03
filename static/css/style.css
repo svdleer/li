@@ -1,0 +1,163 @@
+/* Custom styles for EVE LI Web App */
+
+:root {
+    --primary-color: #0d6efd; /* Official Bootstrap 5 Blue */
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+/* --- Final Navbar Styling --- */
+
+.navbar {
+    /* Keeps your header nice and tall as requested */
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    background-color: var(--primary-color) !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    flex-direction: row; /* Ensures logo and text stay on one line */
+    font-weight: 600;
+    padding: 0;
+}
+
+.navbar-logo {
+    /* Made the logo smaller (22px) to give it more 'air' in the tall header */
+    height: 22px !important; 
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin-right: 15px;
+
+    /* Turns the logo pure white to match the UI */
+    filter: brightness(0) invert(1);
+    
+    /* Blends away any background artifacts */
+    mix-blend-mode: screen; 
+    
+    opacity: 0.9;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.navbar-brand:hover .navbar-logo {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.navbar-brand span {
+    /* Vertical divider line matches the smaller logo height */
+    height: 20px; 
+    border-left: 1px solid rgba(255, 255, 255, 0.4);
+    padding-left: 1rem;
+    color: #ffffff;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* --- UI Components --- */
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.025);
+}
+
+.badge {
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+}
+
+.btn {
+    font-weight: 500;
+}
+
+/* Status indicators */
+.status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+}
+
+.status-dot.healthy {
+    background-color: var(--success-color);
+}
+
+.status-dot.unhealthy {
+    background-color: var(--danger-color);
+}
+
+.status-dot.warning {
+    background-color: var(--warning-color);
+}
+
+/* Loading spinner overlay */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .navbar-brand span {
+        font-size: 0.95rem;
+        padding-left: 0.8rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .btn,
+    footer {
+        display: none;
+    }
+}

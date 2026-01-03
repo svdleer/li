@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Health - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-heart-pulse"></i> System Health</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- Overall Status -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-{{ 'success' if overall_status == 'healthy' else 'warning' if overall_status == 'degraded' else 'danger' }}">
+            <div class="card-body text-center">
+                <h3>
+                    {% if overall_status == 'healthy' %}
+                    <i class="bi bi-check-circle-fill text-success"></i> System Healthy
+                    {% elif overall_status == 'degraded' %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> System Degraded
+                    {% else %}
+                    <i class="bi bi-x-circle-fill text-danger"></i> System Error
+                    {% endif %}
+                </h3>
+                <p class="text-muted">Last checked: {{ now or 'Unknown' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Checks -->
+<div class="row">
+    {% for key, check in health_checks.items() %}
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header {% if check.status == 'healthy' %}bg-success text-white{% elif check.status == 'unhealthy' %}bg-danger text-white{% else %}bg-secondary text-white{% endif %}">
+                <h6 class="mb-0">
+                    {% if check.status == 'healthy' %}
+                    <i class="bi bi-check-circle"></i>
+                    {% elif check.status == 'unhealthy' %}
+                    <i class="bi bi-x-circle"></i>
+                    {% else %}
+                    <i class="bi bi-info-circle"></i>
+                    {% endif %}
+                    {{ check.name }}
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ check.message }}</p>
+                <small class="text-muted">Status: <strong>{{ check.status }}</strong></small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+2026-01-02 23:31:26,442 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:26,442 - cache_refresh - INFO - NETSHOT CACHE REFRESH STARTED
+2026-01-02 23:31:26,442 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:26,442 - cache_refresh - INFO - Start time: 2026-01-02 23:31:26.442210
+2026-01-02 23:31:26,442 - cache_refresh - INFO - Force refresh: False
+2026-01-02 23:31:26,442 - cache_refresh - INFO - Initializing API clients...
+2026-01-02 23:31:26,442 - cache_manager - INFO - Cache manager initialized: .cache
+2026-01-02 23:31:26,442 - cache_manager - INFO - Default TTL: 86400 seconds (24.0 hours)
+2026-01-02 23:31:26,442 - netshot_api - INFO - Caching enabled: TTL=86400s, dir=.cache
+2026-01-02 23:31:26,442 - cache_manager - INFO - Cache manager initialized: .cache
+2026-01-02 23:31:26,442 - cache_manager - INFO - Default TTL: 86400 seconds (24.0 hours)
+2026-01-02 23:31:26,442 - netshot_api - INFO - Testing Netshot API connection to https://netshot.local/api/
+2026-01-02 23:31:31,466 - netshot_api - ERROR - Request error calling https://netshot.local/api/devices: HTTPSConnectionPool(host='netshot.local', port=443): Max retries exceeded with url: /api/devices?limit=1 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x1023cc8e0>: Failed to resolve 'netshot.local' ([Errno 8] nodename nor servname provided, or not known)"))
+2026-01-02 23:31:31,468 - netshot_api - ERROR - Netshot API connection failed
+2026-01-02 23:31:31,468 - cache_refresh - ERROR - ✗ Cannot connect to Netshot API
+2026-01-02 23:31:53,041 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:53,041 - cache_refresh - INFO - NETSHOT CACHE REFRESH STARTED
+2026-01-02 23:31:53,041 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:53,041 - cache_refresh - INFO - Start time: 2026-01-02 23:31:53.041221
+2026-01-02 23:31:53,041 - cache_refresh - INFO - Force refresh: False
+2026-01-02 23:31:53,041 - cache_refresh - INFO - Initializing API clients...
+2026-01-02 23:31:53,041 - cache_manager - INFO - Cache manager initialized: .cache
+2026-01-02 23:31:53,041 - cache_manager - INFO - Default TTL: 86400 seconds (24.0 hours)
+2026-01-02 23:31:53,041 - netshot_api - INFO - Caching enabled: TTL=86400s, dir=.cache
+2026-01-02 23:31:53,041 - cache_manager - INFO - Cache manager initialized: .cache
+2026-01-02 23:31:53,041 - cache_manager - INFO - Default TTL: 86400 seconds (24.0 hours)
+2026-01-02 23:31:53,041 - netshot_api - INFO - Testing Netshot API connection to https://localhost:8443/api/
+2026-01-02 23:31:53,142 - netshot_api - INFO - Netshot API connection successful
+2026-01-02 23:31:53,142 - cache_refresh - INFO - ✓ Connected to Netshot API
+2026-01-02 23:31:53,142 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:53,142 - cache_refresh - INFO - STEP 1: Refreshing device list cache
+2026-01-02 23:31:53,142 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:53,142 - netshot_api - INFO - Fetching devices with IN PRODUCTION status from Netshot
+2026-01-02 23:31:53,981 - netshot_api - INFO - Found 4925 devices in production
+2026-01-02 23:31:54,034 - cache_refresh - INFO - ✓ Cached 4925 production devices
+2026-01-02 23:31:54,035 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:54,035 - cache_refresh - INFO - CACHE STATISTICS
+2026-01-02 23:31:54,035 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Cache directory: .cache
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Total entries: 1
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Valid entries: 1
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Expired entries: 0
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Total size: 1.65 MB
+2026-01-02 23:31:54,035 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:54,035 - cache_refresh - INFO - CACHE REFRESH COMPLETED SUCCESSFULLY
+2026-01-02 23:31:54,035 - cache_refresh - INFO - ============================================================
+2026-01-02 23:31:54,035 - cache_refresh - INFO - End time: 2026-01-02 23:31:54.035547
+2026-01-02 23:31:54,035 - cache_refresh - INFO - Duration: 1.0 seconds (0.0 minutes)

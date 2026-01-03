@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Devices - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-router"></i> Devices</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'all' %}active{% endif %}" href="{{ url_for('devices', type='all') }}">All Devices</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'cmts' %}active{% endif %}" href="{{ url_for('devices', type='cmts') }}">CMTS</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if device_type == 'pe' %}active{% endif %}" href="{{ url_for('devices', type='pe') }}">PE</a>
+    </li>
+</ul>
+
+<!-- CMTS Devices -->
+{% if device_type in ['all', 'cmts'] and cmts_devices %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5><i class="bi bi-router"></i> CMTS Devices ({{ cmts_devices|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Management IP</th>
+                        <th>Loopback</th>
+                        <th>Subnets</th>
+                        <th>DHCP Scopes</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in cmts_devices %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#cmts-{{ loop.index }}" style="cursor: pointer;" class="table-hover-row">
+                        <td><strong><i class="bi bi-chevron-right"></i> {{ device.name }}</strong></td>
+                        <td>{{ device.mgmtAddress }}</td>
+                        <td><code>{{ device.loopback or 'N/A' }}</code></td>
+                        <td><span class="badge bg-info">{{ device.subnets|length }} total</span></td>
+                        <td>
+                            <span class="badge bg-success">{{ device.dhcp_subnets|length if device.dhcp_subnets else 0 }}</span>
+                            <small class="text-muted ms-1">DHCPv4/v6</small>
+                        </td>
+                        <td><span class="badge bg-success">{{ device.status }}</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" class="p-0">
+                            <div class="collapse" id="cmts-{{ loop.index }}">
+                                <div class="card card-body m-2 bg-light">
+                                    <h6><i class="bi bi-diagram-3"></i> Subnet Details for {{ device.name }}</h6>
+                                    <p class="text-muted small">Location: {{ device.location }} | Software: {{ device.softwareVersion }}</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary"><i class="bi bi-wifi"></i> IPv4 Subnets ({{ device.subnets|select('match', '.*\\..*')|list|length }})</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if '.' in subnet and ':' not in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-broadcast"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        {% if subnet in device.dhcp_subnets %}
+                                                        <span class="badge bg-success">DHCPv4</span>
+                                                        {% endif %}
+                                                        {% if '/22' in subnet %}
+                                                        <span class="badge bg-info">Cable Modem Pool</span>
+                                                        {% elif '/24' in subnet %}
+                                                        <span class="badge bg-secondary">Management</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info"><i class="bi bi-globe"></i> IPv6 Subnets ({{ device.subnets|select('match', '.*:.*')|list|length }})</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if ':' in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-globe"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        {% if subnet in device.dhcp_subnets %}
+                                                        <span class="badge bg-info">DHCPv6</span>
+                                                        {% endif %}
+                                                        {% if '/40' in subnet %}
+                                                        <span class="badge bg-warning text-dark">/40 Block</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- PE Devices -->
+{% if device_type in ['all', 'pe'] and pe_devices %}
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5><i class="bi bi-diagram-3"></i> PE Devices ({{ pe_devices|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Management IP</th>
+                        <th>Loopback</th>
+                        <th>Subnets</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in pe_devices %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#pe-{{ loop.index }}" style="cursor: pointer;" class="table-hover-row">
+                        <td><strong><i class="bi bi-chevron-right"></i> {{ device.name }}</strong></td>
+                        <td>{{ device.mgmtAddress }}</td>
+                        <td><code>{{ device.loopback or 'N/A' }}</code></td>
+                        <td><span class="badge bg-info">{{ device.subnets|length }} total</span></td>
+                        <td><span class="badge bg-success">{{ device.status }}</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="p-0">
+                            <div class="collapse" id="pe-{{ loop.index }}">
+                                <div class="card card-body m-2 bg-light">
+                                    <h6><i class="bi bi-diagram-3"></i> Subnet Details for {{ device.name }}</h6>
+                                    <p class="text-muted small">Location: {{ device.location }} | Software: {{ device.softwareVersion }}</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary"><i class="bi bi-diagram-2"></i> IPv4 Subnets ({{ device.subnets|select('match', '.*\\..*')|list|length }})</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if '.' in subnet and ':' not in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-diagram-2"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        {% if '/30' in subnet %}
+                                                        <span class="badge bg-secondary">P2P Link</span>
+                                                        {% elif '/24' in subnet %}
+                                                        <span class="badge bg-primary">Customer Network</span>
+                                                        {% endif %}
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info"><i class="bi bi-globe"></i> IPv6 Subnets ({{ device.subnets|select('match', '.*:.*')|list|length }})</h6>
+                                            <ul class="list-group list-group-flush">
+                                                {% for subnet in device.subnets %}
+                                                {% if ':' in subnet %}
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span><i class="bi bi-globe"></i> <code>{{ subnet }}</code></span>
+                                                    <span>
+                                                        <span class="badge bg-info">/48 Block</span>
+                                                    </span>
+                                                </li>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not cmts_devices and not pe_devices %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No devices found. Check your Netshot connection.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Add chevron rotation on collapse
+document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(element => {
+    element.addEventListener('click', function() {
+        const icon = this.querySelector('.bi-chevron-right');
+        if (icon) {
+            icon.classList.toggle('bi-chevron-right');
+            icon.classList.toggle('bi-chevron-down');
+        }
+    });
+});
+</script>
+{% endblock %}

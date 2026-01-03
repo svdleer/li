@@ -1,0 +1,24 @@
+{
+  "value": [
+    {
+      "id": 271935176,
+      "interfaceName": "Loopback0",
+      "ip4Addresses": [
+        {
+          "prefixLength": 32,
+          "addressUsage": "PRIMARY",
+          "ip": "213.51.255.95"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    }
+  ],
+  "cached_at": "2026-01-03T21:21:50.506555",
+  "key": "device_interfaces_4918"
+}

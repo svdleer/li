@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Search - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-search"></i> Subnet Search</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <form action="{{ url_for('search_page') }}" method="get">
+                    <div class="input-group input-group-lg">
+                        <input type="text" 
+                               class="form-control" 
+                               name="q" 
+                               value="{{ query }}" 
+                               placeholder="Search for IP address, CIDR, device name, or location..."
+                               autofocus>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <strong>Examples:</strong> 203.80.5.100 | 203.80.0.0/22 | cmts-amsterdam-01 | Amsterdam
+                    </small>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if results %}
+<!-- Search Results -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    {% if results.total_matches > 0 %}
+                    <i class="bi bi-check-circle"></i> Found {{ results.total_matches }} Match{{ 'es' if results.total_matches > 1 else '' }}
+                    {% else %}
+                    <i class="bi bi-x-circle"></i> No Matches Found
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if results.total_matches > 0 %}
+                <p class="text-muted mb-3">
+                    Query Type: <strong class="text-capitalize">{{ results.query_type.replace('_', ' ') }}</strong>
+                </p>
+                
+                <!-- Results Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Device</th>
+                                <th>Type</th>
+                                <th>Subnet</th>
+                                <th>Location</th>
+                                <th>XML Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results.results %}
+                            <tr>
+                                <td>
+                                    <strong>{{ result.device_name }}</strong><br>
+                                    <small class="text-muted">{{ result.device_info.mgmtAddress }}</small>
+                                </td>
+                                <td>
+                                    {% if result.device_type == 'CMTS' %}
+                                    <span class="badge bg-primary">CMTS</span>
+                                    {% else %}
+                                    <span class="badge bg-info">PE</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code>{{ result.subnet_cidr }}</code>
+                                </td>
+                                <td>
+                                    {{ result.device_info.location }}
+                                </td>
+                                <td>
+                                    {% if result.included_in_xml %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Included
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle"></i> Excluded
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#details-{{ loop.index }}">
+                                        <i class="bi bi-info-circle"></i> Details
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="details-{{ loop.index }}">
+                                <td colspan="6" class="bg-light">
+                                    <div class="p-3">
+                                        <h6>Validation Details</h6>
+                                        <p><strong>Status:</strong> {{ result.validation_status }}</p>
+                                        <p><strong>Reason:</strong> {{ result.validation_reason }}</p>
+                                        <hr>
+                                        <h6>Device Information</h6>
+                                        <p><strong>Vendor:</strong> {{ result.device_info.vendor }}</p>
+                                        <p><strong>Device Type:</strong> {{ result.device_info.device_type }}</p>
+                                        <p><strong>Software Version:</strong> {{ result.device_info.softwareVersion }}</p>
+                                        <p><strong>Loopback:</strong> {{ result.device_info.loopback }}</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% elif query %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> No matches found for "<strong>{{ query }}</strong>".
+                    <br><br>
+                    Please try:
+                    <ul>
+                        <li>Checking your spelling</li>
+                        <li>Using a different search term</li>
+                        <li>Searching for an IP address (e.g., 203.80.5.100)</li>
+                        <li>Searching for a CIDR block (e.g., 203.80.0.0/22)</li>
+                        <li>Searching for a device name (e.g., cmts-amsterdam-01)</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

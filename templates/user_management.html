@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-people"></i> User Management</h2>
+        <p class="text-muted">Manage user accounts and permissions</p>
+        <hr>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ users|length }}</h3>
+                <small class="text-muted">Total Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h3>
+                <small class="text-muted">Administrators</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ users|selectattr('role', 'equalto', 'operator')|list|length }}</h3>
+                <small class="text-muted">Operators</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ users|selectattr('role', 'equalto', 'viewer')|list|length }}</h3>
+                <small class="text-muted">Viewers</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Role Permissions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><span class="badge bg-danger">ADMIN</span></h6>
+                        <ul class="small">
+                            <li>Full system access</li>
+                            <li>Generate and upload XML</li>
+                            <li>Run validations</li>
+                            <li>Modify configuration</li>
+                            <li>Manage users</li>
+                            <li>View audit logs</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><span class="badge bg-success">OPERATOR</span></h6>
+                        <ul class="small">
+                            <li>Generate XML (no upload)</li>
+                            <li>Run validations</li>
+                            <li>View all pages</li>
+                            <li>View audit logs</li>
+                            <li>Search subnets</li>
+                            <li><strike>Cannot upload files</strike></li>
+                            <li><strike>Cannot modify config</strike></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><span class="badge bg-info">VIEWER</span></h6>
+                        <ul class="small">
+                            <li>Read-only access</li>
+                            <li>View dashboard</li>
+                            <li>View devices</li>
+                            <li>View XML status</li>
+                            <li>Search subnets</li>
+                            <li><strike>Cannot perform actions</strike></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list"></i> User List</h5>
+                {% if demo_mode %}
+                <button class="btn btn-sm btn-light" onclick="alert('Demo mode: User creation disabled')">
+                    <i class="bi bi-plus-circle"></i> Add User
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Permissions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_item in users %}
+                            <tr>
+                                <td>
+                                    <i class="bi bi-person-circle"></i>
+                                    <strong>{{ user_item.name }}</strong>
+                                </td>
+                                <td>
+                                    <code>{{ user_item.email }}</code>
+                                </td>
+                                <td>
+                                    {% if user_item.role == 'admin' %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-shield-fill-check"></i> ADMIN
+                                    </span>
+                                    {% elif user_item.role == 'operator' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-gear-fill"></i> OPERATOR
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-eye-fill"></i> VIEWER
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#permissionsModal"
+                                            onclick="showPermissions('{{ user_item.email }}', '{{ user_item.role }}')">
+                                        <i class="bi bi-list-check"></i> View Permissions
+                                    </button>
+                                </td>
+                                <td>
+                                    {% if user.email != user_item.email %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                                type="button" 
+                                                data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i> Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><h6 class="dropdown-header">Change Role</h6></li>
+                                            <li><a class="dropdown-item" href="#" onclick="changeRole('{{ user_item.email }}', 'admin')">
+                                                <i class="bi bi-shield-fill-check"></i> Set as Admin
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="changeRole('{{ user_item.email }}', 'operator')">
+                                                <i class="bi bi-gear-fill"></i> Set as Operator
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="changeRole('{{ user_item.email }}', 'viewer')">
+                                                <i class="bi bi-eye-fill"></i> Set as Viewer
+                                            </a></li>
+                                            {% if demo_mode %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-muted" href="#" onclick="alert('Demo mode: User deletion disabled'); return false;">
+                                                <i class="bi bi-trash"></i> Delete User (Demo)
+                                            </a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Current User</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permissions Modal -->
+<div class="modal fade" id="permissionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-list-check"></i> User Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>User:</strong> <span id="modal-user-email"></span></p>
+                <p><strong>Role:</strong> <span id="modal-user-role" class="badge"></span></p>
+                <hr>
+                <h6>Permissions:</h6>
+                <ul id="modal-permissions-list">
+                    <!-- Populated by JavaScript -->
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Permission data for each role
+const rolePermissions = {
+    'admin': [
+        'View Dashboard', 'View Devices', 'View XML Status', 'View Validation',
+        'View Audit Log', 'Generate XML', 'Upload XML', 'Run Validation',
+        'Modify Config', 'Manage Users', 'Search Subnets'
+    ],
+    'operator': [
+        'View Dashboard', 'View Devices', 'View XML Status', 'View Validation',
+        'View Audit Log', 'Generate XML', 'Run Validation', 'Search Subnets'
+    ],
+    'viewer': [
+        'View Dashboard', 'View Devices', 'View XML Status', 'View Validation',
+        'Search Subnets'
+    ]
+};
+
+function showPermissions(email, role) {
+    document.getElementById('modal-user-email').textContent = email;
+    
+    const roleBadge = document.getElementById('modal-user-role');
+    roleBadge.textContent = role.toUpperCase();
+    roleBadge.className = 'badge';
+    
+    if (role === 'admin') {
+        roleBadge.classList.add('bg-danger');
+    } else if (role === 'operator') {
+        roleBadge.classList.add('bg-success');
+    } else {
+        roleBadge.classList.add('bg-info');
+    }
+    
+    const permissionsList = document.getElementById('modal-permissions-list');
+    permissionsList.innerHTML = '';
+    
+    const permissions = rolePermissions[role] || [];
+    permissions.forEach(perm => {
+        const li = document.createElement('li');
+        li.innerHTML = `<i class="bi bi-check-circle text-success"></i> ${perm}`;
+        permissionsList.appendChild(li);
+    });
+}
+
+function changeRole(email, newRole) {
+    if (!confirm(`Change ${email} to ${newRole.toUpperCase()} role?`)) {
+        return false;
+    }
+    
+    fetch('/api/users/change-role', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: email,
+            new_role: newRole
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Successfully changed ${email} to ${newRole.toUpperCase()} role`);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error changing role: ' + error);
+    });
+    
+    return false;
+}
+</script>
+{% endblock %}

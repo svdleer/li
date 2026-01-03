@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_title }}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/vodafoneziggo-logo.png') }}" alt="VFZ Logo" class="navbar-logo">
+                <span>
+                    <i class="bi bi-broadcast-pin"></i> EVE LI XML Generator (DEMO MODE)
+                </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('devices') }}">
+                            <i class="bi bi-router"></i> Devices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('xml_status') }}">
+                            <i class="bi bi-file-earmark-code"></i> XML Status
+                        </a>
+                    </li>
+                    {% if check_permission('view_audit_log') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('audit_log_page') }}">
+                            <i class="bi bi-clock-history"></i> Audit Log
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if check_permission('manage_users') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user_management') }}">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('health') }}">
+                            <i class="bi bi-heart-pulse"></i> Health
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Bar (NEW) -->
+                {% if user %}
+                <form class="d-flex me-3" action="{{ url_for('search_page') }}" method="get">
+                    <input class="form-control form-control-sm me-2" 
+                           type="search" 
+                           name="q" 
+                           placeholder="Search IP, CIDR, Device..." 
+                           aria-label="Search"
+                           style="width: 280px;">
+                    <button class="btn btn-sm btn-outline-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+                {% endif %}
+                
+                <ul class="navbar-nav">
+                    {% if user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ user.name }}
+                            {% if user.role %}
+                            <span class="badge bg-light text-dark ms-1">{{ user.role|upper }}</span>
+                            {% endif %}
+                        </a>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="container-fluid mt-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <span class="text-muted">{{ app_title }} v{{ app_version }} | &copy; 2025</span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}XML Status - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-file-earmark-code"></i> XML Status</h2>
+        <hr>
+    </div>
+</div>
+
+<!-- XML Files -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-file-zip"></i> Generated XML Files</h5>
+    </div>
+    <div class="card-body">
+        {% if xml_files %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Generated</th>
+                        <th>Upload Status</th>
+                        <th>Upload Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in xml_files %}
+                    <tr>
+                        <td><i class="bi bi-file-zip"></i> {{ file.name }}</td>
+                        <td><span class="badge bg-{{ 'primary' if file.type == 'CMTS' else 'success' }}">{{ file.type }}</span></td>
+                        <td>{{ file.size_mb }} MB</td>
+                        <td>{{ file.modified_str }}</td>
+                        <td>
+                            {% if file.upload_status == 'success' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> SUCCESS</span>
+                            {% elif file.upload_status == 'failed' %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> FAILED</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ file.upload_time }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewXML('{{ file.name }}')">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <a href="{{ url_for('download_xml', filename=file.name) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#response-{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-code-square"></i> Response
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="uploadXML('{{ file.name }}')">
+                                    <i class="bi bi-cloud-upload"></i> Re-upload
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="response-{{ loop.index }}">
+                        <td colspan="7" class="bg-light">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong><i class="bi bi-code-square"></i> Upload Response JSON</strong>
+                                </div>
+                                <div class="card-body">
+                                    <pre class="mb-0"><code>{{ file.response_json }}</code></pre>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No XML files found. Generate XML files from the dashboard.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Logs -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-journal-text"></i> Recent Logs</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_logs %}
+        <div class="list-group">
+            {% for log in recent_logs %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1"><i class="bi bi-file-text"></i> {{ log.name }}</h6>
+                    <small>{{ log.modified }}</small>
+                </div>
+                <small class="text-muted">{{ (log.size / 1024) | round(2) }} KB</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No log files found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Uploading...</span>
+                </div>
+                <p class="mt-3" id="uploadMessage">Uploading XML file...</p>
+            </div>
+
+<!-- View XML Modal -->
+<div class="modal fade" id="viewXMLModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-code"></i> <span id="xmlFileName"></span></h5>
+         viewXML(filename) {
+    document.getElementById('xmlFileName').textContent = filename;
+    
+    // Fetch XML content
+    fetch(`/api/view-xml/${filename}`)
+        .then(response => response.text())
+        .then(xml => {
+            // Escape HTML and display
+            const xmlContent = document.getElementById('xmlContent');
+            xmlContent.textContent = xml;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('viewXMLModal'));
+            modal.show();
+        })
+        .catch(error => {
+            alert('Error loading XML: ' + error);
+        });
+}
+
+function copyXMLToClipboard() {
+    const xmlContent = document.getElementById('xmlContent').textContent;
+    navigator.clipboard.writeText(xmlContent).then(() => {
+        alert('XML copied to clipboard!');
+    }).catch(err => {
+        alert('Failed to copy: ' + err);
+    });
+}
+
+function        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre class="bg-light p-3 rounded" style="max-height: 70vh; overflow-y: auto;"><code id="xmlContent" class="language-xml"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyXMLToClipboard()">
+                    <i class="bi bi-clipboard"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function uploadXML(filename) {
+    if (!confirm(`Upload ${filename} to EVE LI server?`)) {
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+    const messageEl = document.getElementById('uploadMessage');
+    
+    messageEl.textContent = `Uploading ${filename}...`;
+    modal.show();
+    
+    fetch('/api/upload-xml', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename: filename })
+    })
+    .then(response => response.json())
+    .then(data => {
+        modal.hide();
+        if (data.success) {
+            alert('Upload successful: ' + data.message);
+        } else {
+            alert('Upload failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        modal.hide();
+        alert('Error: ' + error);
+    });
+}
+</script>
+{% endblock %}
