@@ -27,7 +27,7 @@
 
 <!-- Status Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <a href="{{ url_for('devices', type='cmts') }}" class="text-decoration-none">
             <div class="card text-white bg-primary h-100">
                 <div class="card-body">
@@ -42,7 +42,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <a href="{{ url_for('devices', type='pe') }}" class="text-decoration-none">
             <div class="card text-white bg-success h-100">
                 <div class="card-body">
@@ -57,7 +57,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card text-white bg-info h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -70,7 +70,11 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+</div>
+
+<!-- System Health Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
         <div class="card text-white {% if stats.netshot_status == 'connected' %}bg-success{% else %}bg-danger{% endif %} h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -78,12 +82,12 @@
                         <h6 class="card-title">Netshot API</h6>
                         <h6 class="mb-0">{{ stats.netshot_status|upper }}</h6>
                     </div>
-                    <i class="bi bi-plug display-4 opacity-50"></i>
+                    <i class="bi bi-hdd-network-fill display-4 opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card text-white {% if mysql_available %}bg-success{% else %}bg-danger{% endif %} h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -91,7 +95,7 @@
                         <h6 class="card-title">MySQL Cache</h6>
                         <h6 class="mb-0">{% if mysql_available %}CONNECTED{% else %}DISCONNECTED{% endif %}</h6>
                     </div>
-                    <i class="bi bi-database display-4 opacity-50"></i>
+                    <i class="bi bi-database-fill-check display-4 opacity-50"></i>
                 </div>
             </div>
         </div>
