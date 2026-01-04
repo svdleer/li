@@ -82,24 +82,57 @@ class EVEXMLGeneratorV2(BaseGenerator):
         try:
             self.logger.info("Fetching CMTS devices with enriched data")
             
-            # Get CMTS devices from Netshot
-            cmts_devices = self.netshot.get_cmts_devices()
+            # Get CMTS devices from Netshot (use cache for performance)
+            cmts_devices = self.netshot.get_cmts_devices(force_refresh=False)
             
-            # Enrich with DHCP data
-            for device in cmts_devices:
-                device_id = device.get('id')
-                
-                # Get interfaces for DHCP cross-referencing
-                interfaces = self.netshot.get_device_interfaces(device_id)
-                
-                # Cross-reference with DHCP database
-                self.dhcp.enrich_cmts_device(device, interfaces)
-                
-                self.logger.debug(f"Enriched CMTS {device.get('name')}: " +
-                                f"{len(device.get('subnets', []))} total subnets, " +
-                                f"{len(device.get('dhcp_subnets', []))} from DHCP")
+            # Filter out [NONAME] and VCAS devices
+            cmts_devices = [d for d in cmts_devices 
+                          if d.get('name') != '[NONAME]' 
+                          and d.get('oss10_hostname') != '[NONAME]'
+                          and 'VCAS' not in d.get('name', '').upper()]
             
-            self.logger.info(f"Retrieved and enriched {len(cmts_devices)} CMTS devices")
+            # Batch load DHCP data from MySQL cache (single query instead of 450+)
+            from app_cache import AppCache
+            import json
+            cache = AppCache()
+            if cache.connect():
+                cursor = cache.connection.cursor()
+                
+                # Get all device validation cache in one query
+                cursor.execute(
+                    "SELECT cache_key, data FROM cache WHERE cache_type = 'device_validation'"
+                )
+                
+                # Build lookup dict
+                dhcp_cache = {}
+                for row in cursor.fetchall():
+                    cache_key = row['cache_key']
+                    device_name = cache_key.replace('device_validation:', '')
+                    data = json.loads(row['data']) if isinstance(row['data'], str) else row['data']
+                    dhcp_cache[device_name] = data
+                
+                # Apply DHCP data to devices
+                for device in cmts_devices:
+                    device_name = device.get('name')
+                    cached_data = dhcp_cache.get(device_name)
+                    
+                    if cached_data:
+                        # Extract DHCP subnets from cache
+                        dhcp_scopes = cached_data.get('dhcp_scopes', [])
+                        dhcp_ipv6_scopes = cached_data.get('dhcp_ipv6_scopes', [])
+                        
+                        # Convert to subnet list
+                        dhcp_subnets = [s.get('scope') for s in dhcp_scopes if s.get('scope')]
+                        dhcp_ipv6_subnets = [s.get('prefixname') for s in dhcp_ipv6_scopes if s.get('prefixname')]
+                        
+                        device['dhcp_subnets'] = dhcp_subnets + dhcp_ipv6_subnets
+                    else:
+                        device['dhcp_subnets'] = []
+                
+                cache.disconnect()
+                self.logger.info(f"Loaded DHCP data for {len(dhcp_cache)} devices from cache")
+            
+            self.logger.info(f"Retrieved {len(cmts_devices)} CMTS devices with DHCP data")
             return cmts_devices
             
         except Exception as e:

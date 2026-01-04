@@ -1,168 +1,83 @@
 version: '3.8'
 
 services:
-  # EVE LI Web Application
+  # EVE LI Web Application (Production Mode)
   eve-li-web:
     build: .
     container_name: eve-li-web
     restart: unless-stopped
-    ports:
-      - "5000:5000"
+    
+    # Use host network mode to access SSH tunnels on Docker host
+    network_mode: "host"
+    
+    # Mount external data directories and config
+    volumes:
+      # Configuration file - SAME as local development (read-only)
+      - ./.env:/app/.env:ro
+      
+      # Data directories (read-write)
+      - ./logs:/app/logs
+      - ./output:/app/output
+      - ./.cache:/app/.cache
+      - ./.flask_session:/app/.flask_session
+    
+    # All settings loaded from .env file (same as local development)
+    # No need to specify environment variables - they're in .env
     environment:
-      # Flask Configuration
-      - FLASK_DEBUG=false
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=5000
-      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-change-this-secret-key}
-      
-      # Azure AD / Office 365
-      - AZURE_AUTHORITY=${AZURE_AUTHORITY:-https://login.microsoftonline.com/common}
-      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
-      
-      # Netshot API
-      - NETSHOT_API_URL=${NETSHOT_API_URL}
-      - NETSHOT_USERNAME=${NETSHOT_USERNAME}
-      - NETSHOT_PASSWORD=${NETSHOT_PASSWORD}
-      
-      # Database Configuration
-      - DB_HOST=${DB_HOST:-db}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=${DB_PORT:-3306}
-      
-      # Database Configuration (DHCP queries + li_xml cache)
-      - DHCP_DB_HOST=${DHCP_DB_HOST:-${DB_HOST}}
-      - DHCP_DB_DATABASE=${DHCP_DB_DATABASE:-${DB_DATABASE}}
-      - DHCP_DB_USER=${DHCP_DB_USER:-${DB_USER}}
-      - DHCP_DB_PASSWORD=${DHCP_DB_PASSWORD:-${DB_PASSWORD}}
-      - DHCP_DB_PORT=${DHCP_DB_PORT:-3306}
-      
-      # Cache Configuration
-      - CACHE_ENABLED=${CACHE_ENABLED:-true}
-      - CACHE_DIR=/app/cache
-      - CACHE_TTL=${CACHE_TTL:-86400}
-      
-      # Upload Configuration
-      - UPLOAD_API_BASE_URL=${UPLOAD_API_BASE_URL}
-      - UPLOAD_API_USERNAME=${UPLOAD_API_USERNAME}
-      - UPLOAD_API_PASSWORD=${UPLOAD_API_PASSWORD}
-      - UPLOAD_TIMEOUT=${UPLOAD_TIMEOUT:-600}
-      - UPLOAD_VERIFICATION_MODE=${UPLOAD_VERIFICATION_MODE:-true}
-      
-      # Application Settings
-      - APP_TITLE=${APP_TITLE:-EVE LI XML Generator}
-      - OUTPUT_DIR=/app/output
-      - SCHEMA_FILE=/app/EVE_IAP_Import.xsd
-    volumes:
-      - ./output:/app/output
-      - ./logs:/app/logs
-      - cache-data:/app/cache
-      - ./.env:/app/.env:ro
-    networks:
-      - eve-li-network
-    depends_on:
-      - db
+    
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Nginx Reverse Proxy (optional, for production)
-  nginx:
-    image: nginx:alpine
-    container_name: eve-li-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    networks:
-      - eve-li-network
-    depends_on:
-      - eve-li-web
-    profiles:
-      - production
-
-  # MySQL Database (for development/testing)
-  db:
-    image: mysql:8.0
-    container_name: eve-li-db
-    restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
-      - MYSQL_DATABASE=${DB_DATABASE}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - db-data:/var/lib/mysql
-      - ./schema_li_xml.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./init-db.sql:/docker-entrypoint-initdb.d/02-init.sql:ro
-    networks:
-      - eve-li-network
-    profiles:
-      - development
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Cache Warmer Service (runs every 15 minutes)
-  cache-warmer:
+  # EVE LI Web Application (Demo Mode)
+  # Same as production but with DEMO_MODE=true (no O365, MySQL, or Netshot needed)
+  eve-li-web-demo:
     build: .
-    container_name: eve-li-cache-warmer
+    container_name: eve-li-web-demo
     restart: unless-stopped
-    environment:
-      # Netshot API
-      - NETSHOT_API_URL=${NETSHOT_API_URL}
-      - NETSHOT_USERNAME=${NETSHOT_USERNAME}
-      - NETSHOT_PASSWORD=${NETSHOT_PASSWORD}
-      
-      # DHCP Database
-      - DHCP_DB_HOST=${DHCP_DB_HOST:-${DB_HOST}}
-      - DHCP_DB_DATABASE=${DHCP_DB_DATABASE:-${DB_DATABASE}}
-      - DHCP_DB_USER=${DHCP_DB_USER:-${DB_USER}}
-      - DHCP_DB_PASSWORD=${DHCP_DB_PASSWORD:-${DB_PASSWORD}}
-      - DHCP_DB_PORT=${DHCP_DB_PORT:-3306}
-      
-      # Cache Configuration
-      - CACHE_ENABLED=true
-      - CACHE_DIR=/app/cache
-      - CACHE_TTL=${CACHE_TTL:-86400}
+    network_mode: "host"
+    
     volumes:
-      - cache-data:/app/cache
       - ./logs:/app/logs
-    networks:
-      - eve-li-network
-    depends_on:
-      - db
-    # Run cache warmer every 15 minutes
-    command: >
-      sh -c "
-      echo 'Cache Warmer: Waiting 30s for database to be ready...'
-      sleep 30
-      while true; do
-        echo '[Cache Warmer] Starting cache refresh...'
-        python /app/cache_warmer.py
-        echo '[Cache Warmer] Completed. Sleeping 15 minutes...'
-        sleep 900
-      done
-      "
+      - ./output:/app/output
+      - ./.flask_session:/app/.flask_session
+    
+    environment:
+      # Demo Mode - No external services required
+      - DEMO_MODE=true
+      - FLASK_DEBUG=true
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_SECRET_KEY=demo-secret-key
+      - APP_TITLE=EVE LI XML Generator - DEMO
+    
+    command: python web_app_demo.py
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
     profiles:
-      - production
+      - demo
 
-networks:
-  eve-li-network:
-    driver: bridge
+# Optional: Nginx Reverse Proxy for production with SSL
+# Uncomment if you want to use Nginx in front of Flask
+#  nginx:
+#    image: nginx:alpine
+#    container_name: eve-li-nginx
+#    restart: unless-stopped
+#    network_mode: "host"
+#    volumes:
+#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ./ssl:/etc/nginx/ssl:ro
 
-volumes:
-  db-data:
-    driver: local
-  cache-data:
-    driver: local
+# Note: MySQL database runs on Docker host, not in container
+# Ensure MySQL is accessible on localhost:3306 and localhost:3307

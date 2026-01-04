@@ -18,6 +18,7 @@ import os
 import logging
 import json
 import re
+import time
 import requests
 from typing import List, Dict, Optional
 from requests.auth import HTTPBasicAuth
@@ -94,64 +95,99 @@ class NetshotAPI:
         return None
     
     def _make_request(self, endpoint: str, method: str = 'GET', 
-                     params: Dict = None, data: Dict = None) -> Optional[Dict]:
+                     params: Dict = None, data: Dict = None, max_retries: int = 3) -> Optional[Dict]:
         """
-        Make HTTP request to Netshot API
+        Make HTTP request to Netshot API with retry logic
         
         Args:
             endpoint: API endpoint (relative to base_url)
             method: HTTP method (GET, POST, etc.)
             params: Query parameters
             data: Request body data
+            max_retries: Maximum number of retry attempts (default: 3)
             
         Returns:
             Response data as dictionary or None on error
         """
         url = f"{self.base_url}{endpoint}"
         
-        try:
-            self.logger.debug(f"Making {method} request to {url}")
-            
-            # Prepare headers and authentication
-            headers = {}
-            auth = None
-            
-            if self.api_key:
-                # Use API key authentication (Bearer token or X-API-Key header)
-                headers['X-Netshot-API-Token'] = self.api_key
-            elif self.username and self.password:
-                # Use Basic authentication
-                auth = HTTPBasicAuth(self.username, self.password)
-            
-            response = requests.request(
-                method=method,
-                url=url,
-                params=params,
-                json=data,
-                headers=headers,
-                auth=auth,
-                timeout=self.timeout,
-                verify=self.verify_ssl
-            )
-            
-            response.raise_for_status()
-            
-            if response.status_code == 204:  # No content
-                return {}
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    # Exponential backoff: 1s, 2s, 4s
+                    wait_time = 2 ** (attempt - 1)
+                    self.logger.debug(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s wait")
+                    time.sleep(wait_time)
                 
-            return response.json()
-            
-        except requests.exceptions.HTTPError as e:
-            self.logger.error(f"HTTP error calling {url}: {e}")
-            if hasattr(e.response, 'text'):
-                self.logger.error(f"Response: {e.response.text}")
-            return None
-        except requests.exceptions.RequestException as e:
-            self.logger.error(f"Request error calling {url}: {e}")
-            return None
-        except ValueError as e:
-            self.logger.error(f"JSON decode error for {url}: {e}")
-            return None
+                self.logger.debug(f"Making {method} request to {url}")
+                
+                # Prepare headers and authentication
+                headers = {}
+                auth = None
+                
+                if self.api_key:
+                    # Use API key authentication (Bearer token or X-API-Key header)
+                    headers['X-Netshot-API-Token'] = self.api_key
+                elif self.username and self.password:
+                    # Use Basic authentication
+                    auth = HTTPBasicAuth(self.username, self.password)
+                
+                response = requests.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    json=data,
+                    headers=headers,
+                    auth=auth,
+                    timeout=self.timeout,
+                    verify=self.verify_ssl
+                )
+                
+                response.raise_for_status()
+                
+                if response.status_code == 204:  # No content
+                    return {}
+                
+                # Try to parse as JSON first
+                try:
+                    return response.json()
+                except ValueError:
+                    # If JSON fails, return as text (for config endpoints)
+                    return response.text
+                
+            except requests.exceptions.HTTPError as e:
+                # Don't retry on 4xx errors (client errors)
+                if hasattr(e.response, 'status_code') and 400 <= e.response.status_code < 500:
+                    # Don't log 404 or 400 as errors - they're expected for optional configs
+                    if e.response.status_code in [400, 404] and '/lawfulInterception' in url:
+                        self.logger.debug(f"Optional config not available: {url}")
+                    else:
+                        self.logger.error(f"HTTP error calling {url}: {e}")
+                        if hasattr(e.response, 'text'):
+                            self.logger.error(f"Response: {e.response.text}")
+                    return None
+                    
+                # Retry on 5xx errors (server errors)
+                self.logger.warning(f"HTTP error calling {url} (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    self.logger.error(f"Max retries exceeded for {url}")
+                    return None
+                    
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                # Retry on timeout and connection errors
+                self.logger.warning(f"Connection error calling {url} (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    self.logger.error(f"Max retries exceeded for {url}")
+                    return None
+                    
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"Request error calling {url}: {e}")
+                return None
+            except ValueError as e:
+                self.logger.error(f"JSON decode error for {url}: {e}")
+                return None
+        
+        return None
     
     def _normalize_subnet(self, subnet_str: str) -> str:
         """
@@ -582,13 +618,18 @@ class NetshotAPI:
                 if device_id:
                     device['loopback'] = self.get_loopback_interface(device_id, device.get('name'), force_refresh)
                     subnets, vendor = self.get_device_subnets(device_id, device.get('name'), force_refresh)
-                    device['subnets'] = subnets
-                    device['device_type'] = vendor
+                    # Use Netshot's family field as device_type (more accurate than diagnostic vendor)
+                    device['device_type'] = device.get('family', vendor or 'Unknown')
                     device['primary_subnet'] = self.get_device_primary_subnet(device_id, device.get('name'))
                     
-                    # Extract OSS10 hostname from comments only for devices with CBR in hostname
+                    # Add primary subnet to the beginning of subnets list if not already present
+                    if device['primary_subnet'] and device['primary_subnet'] not in subnets:
+                        subnets = [device['primary_subnet']] + subnets
+                    device['subnets'] = subnets
+                    
+                    # Extract OSS10 hostname from comments for devices with CBR/ABR in hostname (case-insensitive)
                     device_name = device.get('name', '')
-                    if 'CBR' in device_name.upper():
+                    if 'cbr' in device_name.lower() or 'abr' in device_name.lower():
                         # Fetch full device details to get comments field
                         full_device = self._make_request(f'devices/{device_id}')
                         if full_device and 'comments' in full_device:
@@ -614,51 +655,198 @@ class NetshotAPI:
             self.logger.error(f"Error fetching CMTS devices from group 207: {e}")
             return []
     
-    def get_pe_devices(self) -> List[Dict]:
+    def get_pe_devices(self, force_refresh: bool = False) -> List[Dict]:
         """
-        Get all PE (Provider Edge) devices in production
+        Get all PE (Provider Edge) devices from device group 205 with lawfulInterception config
         
+        Args:
+            force_refresh: Force refresh from API, bypass cache
+            
         Returns:
-            List of PE device dictionaries with enriched data
+            List of PE device dictionaries with enriched data and parsed subnets
         """
         try:
-            self.logger.info("Fetching PE devices from Netshot")
+            # Check cache first
+            cache_key = 'pe_devices_all'
+            if not force_refresh and self.use_cache:
+                cached = self.cache.get(cache_key)
+                if cached:
+                    self.logger.info(f"Using cached PE devices: {len(cached)} devices")
+                    return cached
             
-            # Get all production devices
-            all_devices = self.get_production_devices()
+            self.logger.info("Fetching PE devices from Netshot group 205")
             
-            # Filter for PE/router devices
+            # Get device list from group 205
+            response = self._make_request('devices', params={'group': 205})
+            if not response:
+                self.logger.warning("No response from Netshot API for device group 205")
+                return []
+            
+            device_list = response if isinstance(response, list) else []
+            self.logger.info(f"Retrieved {len(device_list)} devices from group 205")
+            
+            # Get full details for each device
             pe_devices = []
-            for device in all_devices:
-                family = device.get('family', '').lower()
-                name = device.get('name', '').lower()
-                network_class = device.get('networkClass', '').lower()
+            for device_summary in device_list:
+                device_id = device_summary.get('id')
+                if not device_id:
+                    continue
                 
-                # Identify PE devices by family, class, or naming convention
-                is_pe = (
-                    'router' in family or
-                    'pe' in name or
-                    'edge' in network_class or
-                    network_class == 'pe'
-                )
+                # Get full device details
+                device = self._make_request(f'devices/{device_id}')
+                if not device:
+                    self.logger.warning(f"Could not get details for device {device_id}")
+                    continue
                 
-                # Exclude CMTS devices
-                is_cmts = 'cmts' in family or 'casa' in family or 'cmts' in name
+                device_name = device.get('name', 'unknown')
                 
-                if is_pe and not is_cmts:
-                    # Enrich device data with loopback and subnets
-                    device_id = device.get('id')
-                    device['loopback'] = self.get_loopback_interface(device_id, device.get('name'))
-                    device['subnets'] = self.get_device_subnets(device_id, device.get('name'))
-                    
-                    pe_devices.append(device)
+                # Set device type
+                device['device_type'] = device.get('family') or 'PE Router'
+                
+                # Get loopback interface
+                device['loopback'] = self.get_loopback_interface(device_id, device_name)
+                
+                # Get lawfulInterception config (optional - not all PE devices have it)
+                lawful_config = self.get_device_config(device_id, 'lawfulInterception')
+                device['lawfulInterception'] = lawful_config
+                
+                # Parse subnets from lawfulInterception (if available)
+                if lawful_config:
+                    ipv4_subnets, ipv6_subnets = self._parse_lawful_interception(lawful_config)
+                    device['subnets'] = ipv4_subnets + ipv6_subnets
+                    device['ipv4_subnets'] = ipv4_subnets
+                    device['ipv6_subnets'] = ipv6_subnets
+                    self.logger.debug(f"{device_name}: Found {len(ipv4_subnets)} IPv4 + {len(ipv6_subnets)} IPv6 subnets")
+                else:
+                    # No lawfulInterception config available for this device
+                    self.logger.debug(f"{device_name}: No lawfulInterception config available")
+                    device['subnets'] = []
+                    device['ipv4_subnets'] = []
+                    device['ipv6_subnets'] = []
+                
+                pe_devices.append(device)
             
-            self.logger.info(f"Found {len(pe_devices)} PE devices")
+            # Cache the results
+            if self.use_cache:
+                self.cache.set(cache_key, pe_devices)
+            
+            self.logger.info(f"Retrieved {len(pe_devices)} PE devices with lawfulInterception data")
             return pe_devices
             
         except Exception as e:
             self.logger.error(f"Error fetching PE devices: {e}")
             return []
+    
+    def get_device_config(self, device_id: int, config_name: str) -> Optional[str]:
+        """
+        Get a specific config from a device
+        
+        Args:
+            device_id: Netshot device ID
+            config_name: Config name (e.g., 'lawfulInterception', 'runningConfig')
+            
+        Returns:
+            Config content as string, or None if not found
+        """
+        try:
+            # First get the device's config snapshots
+            configs = self._make_request(f'devices/{device_id}/configs')
+            
+            if not configs or len(configs) == 0:
+                self.logger.debug(f"No configs found for device {device_id}")
+                return None
+            
+            # Sort by changeDate to get the most recent config
+            sorted_configs = sorted(configs, key=lambda c: c.get('changeDate', 0), reverse=True)
+            config_id = sorted_configs[0].get('id')
+            
+            if not config_id:
+                self.logger.debug(f"No config ID found for device {device_id}")
+                return None
+            
+            # Now fetch the specific config attribute using config ID
+            endpoint = f'configs/{config_id}/{config_name}'
+            response = self._make_request(endpoint)
+            
+            if not response:
+                self.logger.debug(f"No {config_name} config for device {device_id}")
+                return None
+            
+            # Try different response structures
+            if isinstance(response, dict):
+                # Try multiple possible keys
+                config = (response.get('text') or 
+                         response.get('config') or 
+                         response.get('content') or
+                         response.get('data'))
+                if config:
+                    return config
+            elif isinstance(response, str):
+                return response
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching config {config_name} for device {device_id}: {e}")
+            return None
+    
+    def _parse_lawful_interception(self, config_text: str) -> tuple:
+        """
+        Parse IPv4 and IPv6 subnets from lawfulInterception config
+        
+        Args:
+            config_text: The lawfulInterception configuration text
+            
+        Returns:
+            Tuple of (ipv4_subnets, ipv6_subnets) lists
+        """
+        ipv4_subnets = []
+        ipv6_subnets = []
+        
+        if not config_text:
+            return ipv4_subnets, ipv6_subnets
+        
+        # IPv4 CIDR pattern
+        ipv4_pattern = r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})\b'
+        
+        # IPv6 CIDR pattern
+        ipv6_pattern = r'\b([0-9a-fA-F:]+/\d{1,3})\b'
+        
+        # Extract IPv4 subnets
+        for match in re.finditer(ipv4_pattern, config_text):
+            subnet = match.group(1)
+            try:
+                ip, prefix = subnet.split('/')
+                octets = ip.split('.')
+                if len(octets) == 4 and all(0 <= int(o) <= 255 for o in octets):
+                    if 0 <= int(prefix) <= 32:
+                        # Only add public IPs
+                        if not (ip.startswith('10.') or 
+                               re.match(r'^172\.(1[6-9]|2[0-9]|3[0-1])\.', ip) or
+                               ip.startswith('192.168.') or
+                               ip.startswith('198.18.')):
+                            if subnet not in ipv4_subnets:
+                                ipv4_subnets.append(subnet)
+            except:
+                continue
+        
+        # Extract IPv6 subnets
+        for match in re.finditer(ipv6_pattern, config_text):
+            subnet = match.group(1)
+            try:
+                ip, prefix = subnet.split('/')
+                if ':' in ip and 0 <= int(prefix) <= 128:
+                    # Only add public IPs (exclude link-local and ULA)
+                    ip_lower = ip.lower()
+                    if not (ip_lower.startswith('fe80:') or
+                           ip_lower.startswith('fc00:') or
+                           ip_lower.startswith('fd00:')):
+                        if subnet not in ipv6_subnets:
+                            ipv6_subnets.append(subnet)
+            except:
+                continue
+        
+        return ipv4_subnets, ipv6_subnets
     
     def get_device_diagnostic(self, device_id: int, diagnostic_name: str, force_refresh: bool = False) -> Optional[Dict]:
         """

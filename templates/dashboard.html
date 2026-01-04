@@ -10,6 +10,21 @@
     </div>
 </div>
 
+<!-- System Warnings -->
+{% if not netshot_available or not mysql_available %}
+<div class="alert alert-danger alert-permanent mb-3" role="alert">
+    <strong><i class="bi bi-exclamation-triangle-fill"></i> Critical System Issues Detected</strong>
+    <ul class="mb-0 mt-2">
+        {% if not netshot_available %}
+        <li><strong>Netshot API:</strong> Unable to connect. Device data cannot be retrieved.</li>
+        {% endif %}
+        {% if not mysql_available %}
+        <li><strong>MySQL Cache:</strong> Database connection failed. DHCP validation unavailable.</li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 <!-- Status Cards -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -47,7 +62,7 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title">Subnets</h6>
+                        <h6 class="card-title">Public Subnets</h6>
                         <h2 class="mb-0">{{ stats.public_subnets or 0 }}</h2>
                     </div>
                     <i class="bi bi-globe display-4 opacity-50"></i>
@@ -187,7 +202,7 @@
                         <p class="h4 mb-1">{{ stats.last_xml_update }}</p>
                         <small class="text-muted">Last generation timestamp</small>
                     </div>
-                    <button class="btn btn-sm btn-primary" onclick="generateXML('both')">
+                    <button class="btn btn-sm btn-primary" onclick="generateXML('both')" {% if system_critical %}disabled title="XML generation disabled - system critical"{% endif %}>
                         <i class="bi bi-arrow-clockwise"></i> Regenerate
                     </button>
                 </div>

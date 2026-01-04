@@ -32,6 +32,7 @@ from dotenv import load_dotenv
 from netshot_api import get_netshot_client
 from dhcp_integration import get_dhcp_integration
 from eve_li_xml_generator_v2 import EVEXMLGeneratorV2
+from audit_logger import get_audit_logger
 
 # Load environment variables
 load_dotenv()
@@ -156,7 +157,18 @@ def authorized():
         session["user"] = result.get("id_token_claims")
         _save_cache(cache)
         
-        logger.info(f"User logged in: {session['user'].get('preferred_username')}")
+        username = session['user'].get('preferred_username')
+        logger.info(f"User logged in: {username}")
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=username,
+            category=audit.CATEGORY_LOGIN,
+            action='User logged in successfully',
+            ip_address=request.remote_addr
+        )
+        
         flash(f"Welcome, {session['user'].get('name')}!", "success")
     
     return redirect(url_for("index"))
@@ -166,6 +178,16 @@ def authorized():
 def logout():
     """Logout user"""
     username = session.get("user", {}).get("preferred_username", "Unknown")
+    
+    # Audit log
+    audit = get_audit_logger()
+    audit.log(
+        username=username,
+        category=audit.CATEGORY_LOGOUT,
+        action='User logged out',
+        ip_address=request.remote_addr
+    )
+    
     session.clear()
     logger.info(f"User logged out: {username}")
     flash("You have been logged out.", "info")
@@ -236,18 +258,103 @@ def index():
 @login_required
 def audit_log_page():
     """Audit log page"""
-    # TODO: Implement actual audit log functionality
-    stats = {
-        'total_events': 0,
-        'by_category': {},
-        'by_level': {}
-    }
-    return render_template("audit_log.html",
-                         user=session.get("user"),
-                         app_title=APP_TITLE,
-                         logs=[],
-                         total_logs=0,
-                         stats=stats)
+    try:
+        audit = get_audit_logger()
+        
+        # Get filters from query params
+        category = request.args.get('category', '')
+        user = request.args.get('user', '')
+        level = request.args.get('level', '')
+        page = int(request.args.get('page', 1))
+        per_page = 50
+        
+        # Get logs
+        logs = audit.get_logs(
+            category=category if category else None,
+            username=user if user else None,
+            level=level if level else None,
+            limit=per_page,
+            offset=(page - 1) * per_page
+        )
+        
+        # Get stats
+        stats = audit.get_stats()
+        
+        return render_template("audit_log.html",
+                             user=session.get("user"),
+                             app_title=APP_TITLE,
+                             logs=logs,
+                             total_logs=stats['total_events'],
+                             stats=stats,
+                             current_category=category,
+                             current_user=user,
+                             current_level=level)
+    except Exception as e:
+        logger.error(f"Error loading audit log: {e}")
+        return render_template("audit_log.html",
+                             user=session.get("user"),
+                             app_title=APP_TITLE,
+                             logs=[],
+                             total_logs=0,
+                             stats={'total_events': 0, 'by_category': {}, 'by_level': {}},
+                             current_category='',
+                             current_user='',
+                             current_level='')
+
+
+@app.route("/api/audit/export")
+@login_required
+def api_audit_export():
+    """Export audit logs in CSV or JSON format"""
+    try:
+        audit = get_audit_logger()
+        
+        format_type = request.args.get('format', 'csv')
+        category = request.args.get('category', '')
+        user = request.args.get('user', '')
+        level = request.args.get('level', '')
+        
+        # Get logs
+        logs = audit.get_logs(
+            category=category if category else None,
+            username=user if user else None,
+            level=level if level else None,
+            limit=10000  # Export up to 10k logs
+        )
+        
+        if format_type == 'csv':
+            import csv
+            from io import StringIO
+            
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Timestamp', 'User', 'Category', 'Action', 'Details', 'Level', 'IP Address'])
+            
+            for log in logs:
+                writer.writerow([
+                    log.get('timestamp', ''),
+                    log.get('username', ''),
+                    log.get('category', ''),
+                    log.get('action', ''),
+                    log.get('details', ''),
+                    log.get('level', ''),
+                    log.get('ip_address', '')
+                ])
+            
+            return output.getvalue(), 200, {
+                'Content-Type': 'text/csv',
+                'Content-Disposition': f'attachment; filename=audit_log_{category or "all"}.csv'
+            }
+        else:  # JSON
+            return jsonify({
+                'success': True,
+                'logs': logs,
+                'count': len(logs)
+            })
+            
+    except Exception as e:
+        logger.error(f"Error exporting audit logs: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route("/user-management")
@@ -279,15 +386,51 @@ def search_page():
 def dashboard():
     """Main dashboard with overview statistics"""
     try:
-        # Just show basic status - don't fetch all devices
         netshot_client = get_netshot_client()
         
-        # Test connections only
-        netshot_status = netshot_client.test_connection()
+        # Test Netshot connection
+        netshot_available = netshot_client.test_connection()
         
-        # Get cached device count (fast)
-        cmts_count = 0
-        pe_count = 0
+        # Test MySQL cache connection
+        mysql_available = False
+        try:
+            from app_cache import AppCache
+            cache = AppCache()
+            mysql_available = cache.connect()
+            if mysql_available:
+                cache.disconnect()
+        except Exception as e:
+            logger.error(f"MySQL cache test failed: {e}")
+            mysql_available = False
+        
+        # Get cached device counts (fast - from cache)
+        cmts_devices = netshot_client.get_cmts_devices(force_refresh=False)
+        pe_devices = netshot_client.get_pe_devices()
+        
+        # Filter out [NONAME] and VCAS devices
+        cmts_filtered = [d for d in cmts_devices 
+                        if d.get('name') != '[NONAME]' 
+                        and d.get('oss10_hostname') != '[NONAME]'
+                        and 'VCAS' not in d.get('name', '').upper()]
+        pe_filtered = [d for d in pe_devices if d.get('name') != '[NONAME]']
+        
+        # Count public subnets
+        from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+        total_public_subnets = 0
+        devices_with_dhcp = 0
+        devices_with_loopback = 0
+        
+        for device in cmts_filtered:
+            subnets = device.get('subnets', [])
+            primary = device.get('primary_subnet')
+            public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
+            public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+            total_public_subnets += len(public_ipv4) + len(public_ipv6)
+            
+            if device.get('dhcp_validation', {}).get('has_dhcp'):
+                devices_with_dhcp += 1
+            if device.get('loopback'):
+                devices_with_loopback += 1
         
         # Get recent XML files
         output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
@@ -303,17 +446,22 @@ def dashboard():
                 })
         
         stats = {
-            'netshot_status': 'connected' if netshot_status else 'disconnected',
-            'dhcp_status': 'unknown',
-            'cmts_count': cmts_count,
-            'pe_count': pe_count,
-            'total_devices': cmts_count + pe_count,
+            'netshot_status': 'connected' if netshot_available else 'disconnected',
+            'cmts_count': len(cmts_filtered),
+            'pe_count': len(pe_filtered),
+            'total_devices': len(cmts_filtered) + len(pe_filtered),
+            'public_subnets': total_public_subnets,
+            'devices_with_dhcp': devices_with_dhcp,
+            'devices_with_loopback': devices_with_loopback,
             'recent_files': recent_files
         }
         
         return render_template("dashboard.html",
                              user=session.get("user"),
                              stats=stats,
+                             netshot_available=netshot_available,
+                             mysql_available=mysql_available,
+                             system_critical=(not netshot_available or not mysql_available),
                              app_title=APP_TITLE)
                              
     except Exception as e:
@@ -322,24 +470,130 @@ def dashboard():
         return render_template("dashboard.html",
                              user=session.get("user"),
                              stats={},
+                             netshot_available=False,
+                             mysql_available=False,
+                             system_critical=True,
                              app_title=APP_TITLE)
 
 
 @app.route("/devices/refresh/<device_name>", methods=['POST'])
 @login_required
 def refresh_device(device_name):
-    """Refresh device data by clearing cache"""
+    """Refresh device data by clearing cache and re-fetching from Netshot/DHCP"""
     try:
-        # Clear all cache files related to this device
-        import os
-        import glob
-        cache_dir = '.cache'
-        if os.path.exists(cache_dir):
-            for cache_file in glob.glob(f'{cache_dir}/*{device_name}*.json'):
-                os.remove(cache_file)
-                logger.info(f"Cleared cache file: {cache_file}")
+        from cache_manager import CacheManager
+        from app_cache import AppCache
+        from dhcp_database import DHCPDatabase
+        import hashlib
         
-        return jsonify({'success': True, 'message': f'Cache cleared for {device_name}'})
+        # Get the device ID first (we need it for cache keys)
+        netshot_client = get_netshot_client()
+        devices = netshot_client.get_cmts_devices(force_refresh=False)
+        device_id = None
+        for dev in devices:
+            if dev.get('name') == device_name:
+                device_id = dev.get('id')
+                break
+        
+        if not device_id:
+            return jsonify({'success': False, 'error': f'Device {device_name} not found'}), 404
+        
+        # Clear file cache for this specific device
+        cache_mgr = CacheManager('.cache')
+        cache_keys_to_clear = [
+            f'device_loopback_{device_id}',
+            f'device_subnets_{device_id}',
+            f'device_primary_{device_id}',
+        ]
+        
+        cleared_count = 0
+        for cache_key in cache_keys_to_clear:
+            try:
+                cache_mgr.delete(cache_key)
+                cleared_count += 1
+                logger.info(f"Cleared file cache: {cache_key}")
+            except Exception as e:
+                logger.warning(f"Could not clear {cache_key}: {e}")
+        
+        # Re-fetch device data from Netshot with force_refresh
+        try:
+            device_data = None
+            for dev in netshot_client.get_cmts_devices(force_refresh=False):
+                if dev.get('name') == device_name:
+                    device_data = dev
+                    break
+            
+            if device_data:
+                # Re-fetch fresh data for this device
+                device_data['loopback'] = netshot_client.get_loopback_interface(device_id, device_name, force_refresh=True)
+                subnets, vendor = netshot_client.get_device_subnets(device_id, device_name, force_refresh=True)
+                device_data['subnets'] = subnets
+                device_data['primary_subnet'] = netshot_client.get_device_primary_subnet(device_id, device_name)
+                
+                # Re-validate DHCP
+                dhcp_db = DHCPDatabase()
+                if dhcp_db.connect():
+                    # Determine OSS10 hostname for DHCP lookup
+                    dhcp_hostname = device_data.get('oss10_hostname') or device_name
+                    primary = device_data.get('primary_subnet')
+                    
+                    # Separate IPv4 and IPv6 subnets
+                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                    ipv4_subnets = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
+                    ipv6_subnets = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+                    
+                    if primary and dhcp_hostname:
+                        validation = dhcp_db.validate_device_dhcp(dhcp_hostname, primary, ipv4_subnets, ipv6_subnets)
+                        validation['dhcp_hostname'] = dhcp_hostname
+                        
+                        # Store in MySQL cache
+                        app_cache = AppCache()
+                        if app_cache.connect():
+                            app_cache.set(
+                                cache_key=f'device_validation:{device_name}',
+                                cache_type='device_validation',
+                                data=validation,
+                                ttl_seconds=86400
+                            )
+                            app_cache.disconnect()
+                            logger.info(f"Updated DHCP validation for {device_name}")
+                    
+                    dhcp_db.disconnect()
+                
+                # Update the device in the main cache list
+                try:
+                    import json
+                    cache_key = 'cmts_devices_207'
+                    key_hash = hashlib.md5(cache_key.encode()).hexdigest()
+                    cache_file = cache_mgr.cache_dir / f"{key_hash}.json"
+                    
+                    if cache_file.exists():
+                        with open(cache_file, 'r') as f:
+                            cache_data = json.load(f)
+                        
+                        devices_list = cache_data.get('value', [])
+                        # Find and update this device in the list
+                        for i, d in enumerate(devices_list):
+                            if d.get('name') == device_name:
+                                devices_list[i] = device_data
+                                logger.info(f"Updated device {device_name} in main cache")
+                                break
+                        
+                        # Save back
+                        cache_data['value'] = devices_list
+                        with open(cache_file, 'w') as f:
+                            json.dump(cache_data, f)
+                except Exception as e:
+                    logger.warning(f"Could not update main cache: {e}")
+                
+                logger.info(f"Successfully refreshed device {device_name} from Netshot and DHCP")
+        except Exception as e:
+            logger.error(f"Error re-fetching device data: {e}")
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Refreshed {device_name} from Netshot and DHCP. Page will reload automatically.'
+        })
     except Exception as e:
         logger.error(f"Error refreshing device {device_name}: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -355,6 +609,11 @@ def devices():
     try:
         netshot_client = get_netshot_client()
         
+        # Test Netshot connection first
+        if not netshot_client.test_connection():
+            flash("⚠ Netshot API is not responding. Device data may be stale or unavailable.", "danger")
+            logger.error("Netshot API connection failed")
+        
         cmts_devices = []
         pe_devices = []
         
@@ -365,27 +624,57 @@ def devices():
             # Fetch CMTS devices from Netshot
             all_cmts = netshot_client.get_cmts_devices(force_refresh)
             
-            # Sort by hostname (use OSS10 name if available)
-            cmts_devices = sorted(all_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            # Filter out [NONAME] devices, VCAS devices, and sort by hostname (use OSS10 name if available)
+            filtered_cmts = [d for d in all_cmts 
+                           if d.get('name') != '[NONAME]' 
+                           and d.get('oss10_hostname') != '[NONAME]'
+                           and 'VCAS' not in d.get('name', '').upper()]
+            cmts_devices = sorted(filtered_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
             
-            # Add DHCP validation from MySQL cache
+            # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
                 from app_cache import AppCache
                 cache = AppCache()
                 if cache.connect():
+                    # Fetch all device validations in one query instead of 460+ individual queries
+                    with cache.connection.cursor() as cursor:
+                        cursor.execute(
+                            "SELECT cache_key, data FROM cache WHERE cache_type = 'device_validation' AND expires_at > NOW()"
+                        )
+                        validation_cache = {row['cache_key']: json.loads(row['data']) if isinstance(row['data'], str) else row['data'] 
+                                          for row in cursor.fetchall()}
+                    
+                    # Apply cached validation data to devices
+                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
                     for device in cmts_devices:
                         device_name = device.get('name')
-                        cached_data = cache.get(f'device_validation:{device_name}', 'device_validation')
-                        if cached_data:
+                        cache_key = f'device_validation:{device_name}'
+                        cached_data = validation_cache.get(cache_key)
+                        if cached_data and isinstance(cached_data, dict):
                             device['dhcp_validation'] = cached_data
                             device['dhcp_hostname'] = cached_data.get('dhcp_hostname')
+                        
+                        # Calculate public subnet count (excluding primary subnet)
+                        subnets = device.get('subnets', [])
+                        primary = device.get('primary_subnet')
+                        # Exclude primary subnet from count
+                        public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
+                        public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+                        device['public_subnet_count'] = len(public_ipv4) + len(public_ipv6)
+                    
                     cache.disconnect()
+                else:
+                    flash("⚠ MySQL cache is not available. DHCP validation data will not be displayed.", "warning")
+                    logger.error("MySQL cache connection failed")
             except Exception as cache_err:
-                logger.warning(f"DHCP cache lookup failed: {cache_err}")
+                flash(f"⚠ MySQL cache connection error. DHCP validation unavailable.", "warning")
+                logger.error(f"DHCP cache lookup failed: {cache_err}")
         
         if device_type in ['all', 'pe']:
             all_pe = netshot_client.get_pe_devices(force_refresh)
-            pe_devices = sorted(all_pe, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            # Filter out [NONAME] devices
+            filtered_pe = [d for d in all_pe if d.get('name') != '[NONAME]' and d.get('oss10_hostname') != '[NONAME]']
+            pe_devices = sorted(filtered_pe, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
         
         return render_template("devices.html",
                              user=session.get("user"),
@@ -434,25 +723,48 @@ def devices_data():
             # Wait for Netshot data
             all_cmts = all_cmts_future.result()
             
-            # Show all CMTS devices and sort by hostname (use OSS10 name if available)
-            cmts_devices = sorted(all_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            # Filter out [NONAME] devices, VCAS devices, and sort by hostname (use OSS10 name if available)
+            filtered_cmts = [d for d in all_cmts 
+                           if d.get('name') != '[NONAME]' 
+                           and d.get('oss10_hostname') != '[NONAME]'
+                           and 'VCAS' not in d.get('name', '').upper()]
+            cmts_devices = sorted(filtered_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
             
             # Close DHCP connection (not needed here)
             if dhcp_connected:
                 dhcp_db.disconnect()
             
-            # Add DHCP validation from MySQL cache (background job keeps it fresh)
+            # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
                 from app_cache import AppCache
                 cache = AppCache()
                 if cache.connect():
+                    # Fetch all device validations in one query
+                    with cache.connection.cursor() as cursor:
+                        cursor.execute(
+                            "SELECT cache_key, data FROM cache WHERE cache_type = 'device_validation' AND expires_at > NOW()"
+                        )
+                        validation_cache = {row['cache_key']: json.loads(row['data']) if isinstance(row['data'], str) else row['data'] 
+                                          for row in cursor.fetchall()}
+                    
+                    # Apply cached validation data to devices
+                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
                     for device in cmts_devices:
                         device_name = device.get('name')
-                        # Get cached validation from MySQL
-                        cached_data = cache.get(f'device_validation:{device_name}', 'device_validation')
-                        if cached_data:
+                        cache_key = f'device_validation:{device_name}'
+                        cached_data = validation_cache.get(cache_key)
+                        if cached_data and isinstance(cached_data, dict):
                             device['dhcp_validation'] = cached_data
                             device['dhcp_hostname'] = cached_data.get('dhcp_hostname')
+                        
+                        # Calculate public subnet count (excluding primary subnet)
+                        subnets = device.get('subnets', [])
+                        primary = device.get('primary_subnet')
+                        # Exclude primary subnet from count
+                        public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
+                        public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+                        device['public_subnet_count'] = len(public_ipv4) + len(public_ipv6)
+                    
                     cache.disconnect()
             except Exception as cache_err:
                 logger.warning(f"DHCP cache lookup failed: {cache_err}")
@@ -483,6 +795,22 @@ def devices_data():
 def xml_status():
     """XML generation status and history"""
     try:
+        # Check system status
+        netshot_client = get_netshot_client()
+        netshot_available = netshot_client.test_connection()
+        
+        mysql_available = False
+        try:
+            from app_cache import AppCache
+            cache = AppCache()
+            mysql_available = cache.connect()
+            if mysql_available:
+                cache.disconnect()
+        except Exception:
+            mysql_available = False
+        
+        system_critical = not netshot_available or not mysql_available
+        
         output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
         log_dir = Path('logs')
         
@@ -517,6 +845,9 @@ def xml_status():
                              user=session.get("user"),
                              xml_files=xml_files,
                              recent_logs=recent_logs,
+                             netshot_available=netshot_available,
+                             mysql_available=mysql_available,
+                             system_critical=system_critical,
                              app_title=APP_TITLE)
                              
     except Exception as e:
@@ -526,7 +857,64 @@ def xml_status():
                              user=session.get("user"),
                              xml_files=[],
                              recent_logs=[],
+                             netshot_available=False,
+                             mysql_available=False,
+                             system_critical=True,
                              app_title=APP_TITLE)
+
+
+@app.route("/download_xml/<filename>")
+@login_required
+def download_xml(filename):
+    """Download XML file"""
+    try:
+        output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
+        xml_file = output_dir / filename
+        
+        if not xml_file.exists():
+            flash(f"File not found: {filename}", "danger")
+            return redirect(url_for('xml_status'))
+        
+        logger.info(f"User {session['user'].get('preferred_username')} downloading {filename}")
+        
+        return send_file(
+            xml_file,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/gzip' if filename.endswith('.gz') else 'application/xml'
+        )
+        
+    except Exception as e:
+        logger.error(f"Error downloading XML: {e}")
+        flash(f"Error downloading file: {str(e)}", "danger")
+        return redirect(url_for('xml_status'))
+
+
+@app.route("/api/view-xml/<filename>")
+@login_required
+def api_view_xml(filename):
+    """API endpoint to view XML file content"""
+    try:
+        import gzip
+        output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
+        xml_file = output_dir / filename
+        
+        if not xml_file.exists():
+            return "File not found", 404
+        
+        # If it's a .gz file, decompress it
+        if filename.endswith('.gz'):
+            with gzip.open(xml_file, 'rt', encoding='utf-8') as f:
+                content = f.read()
+        else:
+            with open(xml_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+        
+        return content, 200, {'Content-Type': 'application/xml'}
+        
+    except Exception as e:
+        logger.error(f"Error viewing XML: {e}")
+        return f"Error reading file: {str(e)}", 500
 
 
 @app.route("/health")
@@ -599,9 +987,37 @@ def health():
 def api_generate_xml():
     """API endpoint to generate XML files"""
     try:
-        mode = request.json.get('mode', 'both')  # vfz, pe, or both
+        # Check system status first
+        netshot_client = get_netshot_client()
+        netshot_available = netshot_client.test_connection()
         
-        logger.info(f"User {session['user'].get('preferred_username')} initiated XML generation: {mode}")
+        mysql_available = False
+        try:
+            from app_cache import AppCache
+            cache = AppCache()
+            mysql_available = cache.connect()
+            if mysql_available:
+                cache.disconnect()
+        except Exception:
+            mysql_available = False
+        
+        # Block if system is critical
+        if not netshot_available or not mysql_available:
+            issues = []
+            if not netshot_available:
+                issues.append("Netshot API unavailable")
+            if not mysql_available:
+                issues.append("MySQL cache unavailable")
+            
+            return jsonify({
+                'success': False,
+                'error': 'XML generation disabled due to critical system issues: ' + ', '.join(issues)
+            }), 503
+        
+        mode = request.json.get('mode', 'both')  # vfz, pe, or both
+        username = session['user'].get('preferred_username')
+        
+        logger.info(f"User {username} initiated XML generation: {mode}")
         
         # Generate XML
         generator = EVEXMLGeneratorV2()
@@ -614,6 +1030,17 @@ def api_generate_xml():
         if mode in ['pe', 'both']:
             pe_result = generator.process_pe_devices()
             results['pe'] = pe_result
+        
+        # Audit log
+        audit = get_audit_logger()
+        device_count = sum(r.get('device_count', 0) for r in results.values())
+        audit.log(
+            username=username,
+            category=audit.CATEGORY_XML_GENERATE,
+            action=f'Generated XML files ({mode})',
+            details=f'Processed {device_count} devices',
+            ip_address=request.remote_addr
+        )
         
         return jsonify({
             'success': True,
@@ -634,6 +1061,33 @@ def api_generate_xml():
 def api_upload_xml():
     """API endpoint to upload XML file"""
     try:
+        # Check system status first
+        netshot_client = get_netshot_client()
+        netshot_available = netshot_client.test_connection()
+        
+        mysql_available = False
+        try:
+            from app_cache import AppCache
+            cache = AppCache()
+            mysql_available = cache.connect()
+            if mysql_available:
+                cache.disconnect()
+        except Exception:
+            mysql_available = False
+        
+        # Block if system is critical
+        if not netshot_available or not mysql_available:
+            issues = []
+            if not netshot_available:
+                issues.append("Netshot API unavailable")
+            if not mysql_available:
+                issues.append("MySQL cache unavailable")
+            
+            return jsonify({
+                'success': False,
+                'error': 'XML upload disabled due to critical system issues: ' + ', '.join(issues)
+            }), 503
+        
         filename = request.json.get('filename')
         
         if not filename:

@@ -38,22 +38,99 @@
 </div>
 
 <!-- Loading Spinner -->
-<div id="loadingSpinner" class="text-center my-5">
+<div id="loadingSpinner" class="text-center my-5" style="display:none;">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
         <span class="visually-hidden">Loading devices...</span>
     </div>
     <p class="mt-3">Loading devices from Netshot and validating DHCP...</p>
 </div>
 
-<!-- Device Content (loaded via AJAX) -->
-<div id="deviceContent" style="display:none;"></div>
+<!-- Incomplete Devices Warning -->
+{% if device_type in ['all', 'cmts'] and cmts_devices %}
+{% set incomplete_devices = [] %}
+{% for device in cmts_devices %}
+    {% set has_issues = false %}
+    {% set issues = [] %}
+    
+    {% if not device.loopback %}
+        {% set _ = issues.append('No Loopback') %}
+        {% set has_issues = true %}
+    {% endif %}
+    
+    {% if not device.primary_subnet %}
+        {% set _ = issues.append('No Primary Subnet') %}
+        {% set has_issues = true %}
+    {% endif %}
+    
+    {% if device.get('dhcp_validation') and device.get('public_subnet_count') != device.dhcp_validation.get('dhcp_scopes_count', 0) %}
+        {% set _ = issues.append('Count Mismatch') %}
+        {% set has_issues = true %}
+    {% endif %}
+    
+    {% if has_issues %}
+        {% set _ = device.update({'issues': issues}) %}
+        {% set _ = incomplete_devices.append(device) %}
+    {% endif %}
+{% endfor %}
 
-<!-- CMTS Devices Template (will be populated by AJAX) -->
-<script id="cmtsTemplate" type="text/template">
+{% if incomplete_devices %}
+<div class="alert alert-warning alert-permanent" role="alert">
+    <strong><i class="bi bi-exclamation-triangle"></i> {{ incomplete_devices|length }} Incomplete Device(s)</strong>
+    <button type="button" class="btn btn-sm btn-warning ms-2" data-bs-toggle="collapse" data-bs-target="#incompleteDevices">
+        Show Details
+    </button>
+</div>
+
+<div class="collapse mb-3" id="incompleteDevices">
+    <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h6><i class="bi bi-exclamation-triangle"></i> Devices with Issues</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Issues</th>
+                            <th>Loopback</th>
+                            <th>Primary</th>
+                            <th>Public Subnets</th>
+                            <th>DHCP Scopes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for device in incomplete_devices %}
+                        <tr>
+                            <td>
+                                <strong>{{ device.oss10_hostname or device.name }}</strong>
+                                {% if device.oss10_hostname %}<br><small class="text-muted">({{ device.name }})</small>{% endif %}
+                            </td>
+                            <td>
+                                {% for issue in device.issues %}
+                                <span class="badge bg-warning text-dark">{{ issue }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ device.loopback or '<span class="text-danger">Missing</span>'|safe }}</td>
+                            <td>{{ device.primary_subnet or '<span class="text-danger">Missing</span>'|safe }}</td>
+                            <td><span class="badge bg-info">{{ device.get('public_subnet_count', 0) }}</span></td>
+                            <td><span class="badge bg-secondary">{{ device.get('dhcp_validation', {}).get('dhcp_scopes_count', 0) }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
 <!-- CMTS Devices -->
+{% if device_type in ['all', 'cmts'] and cmts_devices %}
 <div class="card mb-4">
     <div class="card-header bg-primary text-white">
-        <h5><i class="bi bi-router"></i> CMTS Devices (<span id="cmtsCount">0</span>)</h5>
+        <h5><i class="bi bi-router"></i> CMTS Devices ({{ cmts_devices|length }})</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -65,7 +142,7 @@
                         <th>Management IP</th>
                         <th>Loopback</th>
                         <th>Primary Subnet</th>
-                        <th>Netshot Subnets</th>
+                        <th>Public Subnets</th>
                         <th>DHCP Scopes</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -73,40 +150,56 @@
                 </thead>
                 <tbody>
                     {% for device in cmts_devices %}
-                    <tr data-bs-toggle="collapse" data-bs-target="#cmts-{{ loop.index }}" style="cursor: pointer;" class="table-hover-row">
+                    {% set is_incomplete = device.name in incomplete_devices|map(attribute='name')|list or (device.oss10_hostname and device.oss10_hostname in incomplete_devices|map(attribute='oss10_hostname')|list) %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#cmts-{{ loop.index }}" 
+                        style="cursor: pointer;" 
+                        class="table-hover-row {% if is_incomplete %}table-warning{% endif %}">
                         <td>
-                            <strong><i class="bi bi-chevron-right"></i> {{ device.oss10_hostname or device.name }}</strong>
+                            {% if is_incomplete %}
+                                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-chevron-right"></i>
+                            {% endif %}
+                            <strong>{{ device.oss10_hostname or device.name }}</strong>
                             {% if device.oss10_hostname %}<br><small class="text-muted">({{ device.name }})</small>{% endif %}
+                            
+                            {# Show issue count badge if incomplete #}
+                            {% if is_incomplete %}
+                                {% set issue_count = (incomplete_devices|selectattr('name', 'equalto', device.name)|first).issues|length if (incomplete_devices|selectattr('name', 'equalto', device.name)|first) else 0 %}
+                                <span class="badge bg-warning text-dark ms-2" title="Device has {{ issue_count }} issue(s)">
+                                    {{ issue_count }} issue{{ 's' if issue_count != 1 }}
+                                </span>
+                            {% endif %}
                         </td>
                         <td><span class="badge bg-primary">{{ device.device_type }}</span></td>
                         <td>{{ device.mgmtAddress.ip if device.mgmtAddress is mapping else device.mgmtAddress }}</td>
-                        <td><code>{{ device.loopback or 'N/A' }}</code></td>
+                        <td>
+                            {% if device.loopback %}
+                                <code>{{ device.loopback }}</code>
+                            {% else %}
+                                <span class="text-danger"><i class="bi bi-x-circle"></i> N/A</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if device.primary_subnet %}
                                 <code class="text-success">{{ device.primary_subnet }}</code>
                             {% else %}
-                                <span class="text-muted">—</span>
+                                <span class="text-danger"><i class="bi bi-x-circle"></i> Missing</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-info">
-                                {% if device.primary_subnet %}
-                                    {{ device.subnets|length - 1 }}
-                                {% else %}
-                                    {{ device.subnets|length }}
-                                {% endif %}
-                            </span>
+                            <span class="badge bg-info">{{ device.public_subnet_count|default(device.subnets|length) }}</span>
                         </td>
                         <td>
                             {% if device.dhcp_validation and device.dhcp_validation.has_dhcp %}
                                 <span class="badge bg-success">{{ device.dhcp_validation.dhcp_scopes_count }}</span>
-                                <small class="text-success ms-1">✓ Validated</small>
+                                <small class="text-success ms-1"><i class="bi bi-check-circle-fill"></i> Validated</small>
                             {% elif device.dhcp_subnets %}
                                 <span class="badge bg-warning">{{ device.dhcp_subnets|length }}</span>
-                                <small class="text-warning ms-1">⚠ Unvalidated</small>
+                                <small class="text-warning ms-1"><i class="bi bi-exclamation-triangle"></i> Unvalidated</small>
                             {% else %}
-                                <span class="badge bg-secondary">0</span>
-                                <small class="text-muted ms-1">No DHCP</small>
+                                <span class="badge bg-danger">0</span>
+                                <small class="text-danger ms-1"><i class="bi bi-x-circle"></i> No DHCP</small>
                             {% endif %}
                         </td>
                         <td><span class="badge bg-success">{{ device.status }}</span></td>
@@ -303,9 +396,9 @@ if (searchInput) {
 }
 
 function filterDevices(searchTerm) {
-    // Get all device rows (both CMTS and PE)
-    const cmtsRows = document.querySelectorAll('.card-body .table-hover tbody tr:not(.collapse)');
-    const peRows = document.querySelectorAll('.card-body .table-hover tbody tr:not(.collapse)');
+    // Get all device rows (both CMTS and PE) - only the clickable rows, not the collapse details
+    const cmtsRows = document.querySelectorAll('.card-body .table-hover tbody tr[data-bs-toggle="collapse"]');
+    const peRows = document.querySelectorAll('.card-body .table-hover tbody tr[data-bs-toggle="collapse"]');
     const allRows = [...cmtsRows, ...peRows];
     
     let visibleCount = 0;
@@ -378,51 +471,21 @@ function clearSearch() {
     }
 }
 
-// Load devices asynchronously on page load
+// Since we're using server-side rendering, just hide the spinner when page is ready
 document.addEventListener('DOMContentLoaded', function() {
-    const deviceType = '{{ device_type }}';
+    // Hide spinner if we have content already rendered
+    const cmtsDevices = {{ cmts_devices|length }};
+    const peDevices = {{ pe_devices|length }};
     
-    // Fetch devices data
-    fetch(`/api/devices/data?type=${deviceType}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderDevices(data);
-            } else {
-                document.getElementById('loadingSpinner').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i> Error loading devices: ${data.error}
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            document.getElementById('loadingSpinner').innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i> Error loading devices: ${error}
-                </div>
-            `;
-        });
+    if (cmtsDevices > 0 || peDevices > 0) {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.style.display = 'none';
+    } else {
+        // No devices, hide spinner and show message
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.style.display = 'none';
+    }
 });
-
-function renderDevices(data) {
-    // Hide spinner, show content
-    document.getElementById('loadingSpinner').style.display = 'none';
-    const contentDiv = document.getElementById('deviceContent');
-    contentDiv.style.display = 'block';
-    
-    // Build HTML for devices (simplified version - you'll need to build the full template)
-    let html = '<div class="alert alert-success">Successfully loaded ' + data.cmts_devices.length + ' devices</div>';
-    
-    // For now, just render basic structure - you can expand this with full device HTML
-    // This prevents the blocking issue immediately
-    contentDiv.innerHTML = html;
-    
-    // Reload the page to show full data (temporary solution)
-    setTimeout(() => {
-        window.location.href = `/devices?type=${data.device_type}&loaded=true`;
-    }, 500);
-}
 
 // Handle device refresh button clicks
 document.querySelectorAll('.refresh-device').forEach(button => {

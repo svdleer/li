@@ -9,7 +9,8 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    libmariadb-dev \
+    default-libmysqlclient-dev \
+    pkg-config \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,11 +20,14 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy application code (excludes files from .dockerignore)
+COPY *.py ./
+COPY templates/ ./templates/
+COPY static/ ./static/
+COPY sql/ ./sql/
 
-# Create necessary directories
-RUN mkdir -p logs output .flask_session
+# Create necessary directories (will be mounted as volumes in production)
+RUN mkdir -p logs output .cache .flask_session
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
@@ -36,7 +40,7 @@ EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD curl -f http://localhost:5000/health || exit 1
 
 # Run the application
 CMD ["python", "web_app.py"]

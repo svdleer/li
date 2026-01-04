@@ -184,9 +184,24 @@ class DHCPDatabase:
         dhcp_ipv6_scopes = self.get_ipv6_scopes_by_hostname(device_name)
         result['dhcp_ipv6_scopes'] = dhcp_ipv6_scopes
         
-        # Filter and count only public IPv4 scopes
-        public_dhcp_scopes = [s for s in dhcp_scopes if is_public_ipv4(s['scope'])]
-        result['dhcp_scopes_count'] = len(public_dhcp_scopes)
+        # Filter public IPv4 scopes and exclude the primary subnet itself
+        public_dhcp_scopes = [s for s in dhcp_scopes if is_public_ipv4(s['scope']) and s['scope'] != primary_subnet]
+        
+        # Filter unique IPv6 scopes (exclude -PD duplicates which are for prefix delegation)
+        unique_ipv6_scopes = []
+        seen_prefixes = set()
+        for scope in dhcp_ipv6_scopes:
+            prefix = scope['prefixname']
+            # Remove -PD suffix to get base prefix
+            base_prefix = prefix.replace('-PD', '') if prefix.endswith('-PD') else prefix
+            if base_prefix not in seen_prefixes:
+                seen_prefixes.add(base_prefix)
+                unique_ipv6_scopes.append(scope)
+        
+        # Count both IPv4 and IPv6 scopes (excluding primary and IPv6 duplicates)
+        ipv4_count = len(public_dhcp_scopes)
+        ipv6_count = len(unique_ipv6_scopes)
+        result['dhcp_scopes_count'] = ipv4_count + ipv6_count
         result['has_dhcp'] = result['dhcp_scopes_count'] > 0
         
         # Validate IPv4

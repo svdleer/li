@@ -10,6 +10,22 @@
     </div>
 </div>
 
+<!-- System Warnings -->
+{% if system_critical %}
+<div class="alert alert-danger alert-permanent mb-3" role="alert">
+    <strong><i class="bi bi-exclamation-triangle-fill"></i> XML Generation Disabled - Critical System Issues</strong>
+    <p class="mb-2 mt-2">XML generation and upload are disabled due to the following issues:</p>
+    <ul class="mb-0">
+        {% if not netshot_available %}
+        <li><strong>Netshot API:</strong> Unable to connect. Cannot retrieve device data.</li>
+        {% endif %}
+        {% if not mysql_available %}
+        <li><strong>MySQL Cache:</strong> Database connection failed. Cannot validate DHCP data.</li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 <!-- XML Files -->
 <div class="card mb-4">
     <div class="card-header">
@@ -58,7 +74,7 @@
                                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#response-{{ loop.index }}" aria-expanded="false">
                                     <i class="bi bi-code-square"></i> Response
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="uploadXML('{{ file.name }}')">
+                                <button class="btn btn-sm btn-outline-primary" onclick="uploadXML('{{ file.name }}')" {% if system_critical %}disabled title="Upload disabled - system critical"{% endif %}>
                                     <i class="bi bi-cloud-upload"></i> Re-upload
                                 </button>
                             </div>

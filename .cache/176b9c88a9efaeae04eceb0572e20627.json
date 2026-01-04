@@ -1,0 +1,24 @@
+{
+  "value": [
+    {
+      "id": 272080410,
+      "interfaceName": "management [A/1]",
+      "ip4Addresses": [
+        {
+          "prefixLength": 24,
+          "addressUsage": "PRIMARY",
+          "ip": "172.28.45.3"
+        }
+      ],
+      "ip6Addresses": [],
+      "vrfInstance": "management",
+      "virtualDevice": "",
+      "description": "",
+      "enabled": true,
+      "level3": true,
+      "macAddress": "0000.0000.0000"
+    }
+  ],
+  "cached_at": "2026-01-04T12:06:17.625768",
+  "key": "device_interfaces_11946"
+}

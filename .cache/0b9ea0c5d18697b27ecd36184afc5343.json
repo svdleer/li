@@ -1,7 +1,7 @@
 {
   "value": [
     {
-      "id": 272016635,
+      "id": 272080353,
       "interfaceName": "Loopback0",
       "ip4Addresses": [
         {
@@ -19,6 +19,6 @@
       "macAddress": "0000.0000.0000"
     }
   ],
-  "cached_at": "2026-01-03T21:20:34.961862",
+  "cached_at": "2026-01-04T01:25:55.968243",
   "key": "device_interfaces_11113"
 }

@@ -33,8 +33,10 @@ def warm_device_validation_cache():
     logger.info("Starting cache warmer job")
     
     start_time = datetime.now()
-    success_count = 0
-    error_count = 0
+    cmts_success = 0
+    cmts_errors = 0
+    pe_success = 0
+    pe_errors = 0
     
     try:
         # Initialize connections
@@ -90,7 +92,7 @@ def warm_device_validation_cache():
                         ttl_seconds=86400
                     )
                     
-                    success_count += 1
+                    cmts_success += 1
                     logger.info(
                         f"[{idx}/{len(devices)}] {device_name}: "
                         f"DHCP={'✓' if validation.get('has_dhcp') else '✗'} "
@@ -100,8 +102,51 @@ def warm_device_validation_cache():
                     logger.warning(f"[{idx}/{len(devices)}] {device_name}: Missing primary subnet or hostname")
                     
             except Exception as e:
-                error_count += 1
+                cmts_errors += 1
                 logger.error(f"[{idx}/{len(devices)}] {device_name}: Error - {e}")
+        
+        # Get and cache PE devices
+        logger.info("\nFetching PE devices from Netshot...")
+        pe_devices = netshot_api.get_pe_devices(force_refresh=False)
+        logger.info(f"Found {len(pe_devices)} PE devices")
+        
+        # Process each PE device
+        for idx, device in enumerate(pe_devices, 1):
+            device_name = device.get('name')
+            
+            if not device_name:
+                continue
+            
+            try:
+                # Store PE device data in MySQL cache
+                pe_data = {
+                    'device_name': device_name,
+                    'device_id': device.get('id'),
+                    'device_type': device.get('device_type'),
+                    'loopback': device.get('loopback'),
+                    'ipv4_subnets': device.get('ipv4_subnets', []),
+                    'ipv6_subnets': device.get('ipv6_subnets', []),
+                    'total_subnets': len(device.get('subnets', []))
+                }
+                
+                # Store in MySQL cache (24 hour TTL)
+                app_cache.set(
+                    cache_key=f'pe_device:{device_name}',
+                    cache_type='pe_device',
+                    data=pe_data,
+                    ttl_seconds=86400
+                )
+                
+                pe_success += 1
+                logger.info(
+                    f"[{idx}/{len(pe_devices)}] {device_name}: "
+                    f"{pe_data['total_subnets']} subnets "
+                    f"({len(pe_data['ipv4_subnets'])} IPv4 + {len(pe_data['ipv6_subnets'])} IPv6)"
+                )
+                
+            except Exception as e:
+                pe_errors += 1
+                logger.error(f"[{idx}/{len(pe_devices)}] {device_name}: Error - {e}")
         
         # Cleanup expired cache entries
         logger.info("Cleaning up expired cache entries...")
@@ -115,7 +160,8 @@ def warm_device_validation_cache():
         duration = (datetime.now() - start_time).total_seconds()
         logger.info("=" * 60)
         logger.info(f"Cache warmer completed in {duration:.1f}s")
-        logger.info(f"Success: {success_count}, Errors: {error_count}")
+        logger.info(f"CMTS devices - Success: {cmts_success}, Errors: {cmts_errors}")
+        logger.info(f"PE devices   - Success: {pe_success}, Errors: {pe_errors}")
         logger.info("=" * 60)
         
     except Exception as e:
