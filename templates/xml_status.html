@@ -74,7 +74,10 @@
                                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#response-{{ loop.index }}" aria-expanded="false">
                                     <i class="bi bi-code-square"></i> Response
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="uploadXML('{{ file.name }}')" {% if system_critical %}disabled title="Upload disabled - system critical"{% endif %}>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        {% if system_critical %}disabled{% endif %}
+                                        onclick="{% if not system_critical %}uploadXML('{{ file.name }}'){% else %}return false;{% endif %}" 
+                                        {% if system_critical %}title="Upload disabled - system critical"{% endif %}>
                                     <i class="bi bi-cloud-upload"></i> Re-upload
                                 </button>
                             </div>

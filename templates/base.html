@@ -23,7 +23,7 @@
             <a class="navbar-brand" href="/">
                 <img src="{{ url_for('static', filename='img/vodafoneziggo-logo.png') }}" alt="VFZ Logo" class="navbar-logo">
                 <span>
-                    <i class="bi bi-broadcast-pin"></i> EVE LI XML Generator (DEMO MODE)
+                    <i class="bi bi-broadcast-pin"></i> EVE LI XML Generator (DEMO)
                 </span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -57,7 +57,7 @@
                     {% if check_permission('manage_users') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('user_management') }}">
-                            <i class="bi bi-people"></i> Users
+                            <i class="bi bi-people"></i> User Management
                         </a>
                     </li>
                     {% endif %}
@@ -75,9 +75,9 @@
                     <input class="form-control form-control-sm me-2" 
                            type="search" 
                            name="q" 
-                           placeholder="Search IP, CIDR, Device..." 
+                           placeholder="Search IP/CIDR..." 
                            aria-label="Search"
-                           style="width: 280px;">
+                           style="width: 200px;">
                     <button class="btn btn-sm btn-outline-light" type="submit">
                         <i class="bi bi-search"></i>
                     </button>

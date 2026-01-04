@@ -219,7 +219,10 @@
                         <p class="h4 mb-1">{{ stats.last_xml_update }}</p>
                         <small class="text-muted">Last generation timestamp</small>
                     </div>
-                    <button class="btn btn-sm btn-primary" onclick="generateXML('both')" {% if system_critical %}disabled title="XML generation disabled - system critical"{% endif %}>
+                    <button class="btn btn-sm btn-primary" 
+                            {% if system_critical %}disabled{% endif %}
+                            onclick="{% if not system_critical %}generateXML('both'){% else %}return false;{% endif %}" 
+                            {% if system_critical %}title="XML generation disabled - system critical"{% endif %}>
                         <i class="bi bi-arrow-clockwise"></i> Regenerate
                     </button>
                 </div>
