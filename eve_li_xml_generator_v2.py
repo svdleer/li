@@ -32,19 +32,18 @@ import requests
 from netshot_api import get_netshot_client, NetshotAPI
 from dhcp_integration import get_dhcp_integration, DHCPIntegration
 
-# Import base generator for XML functions
-from eve_li_xml_generator import EVEXMLGenerator as BaseGenerator
 
-
-class EVEXMLGeneratorV2(BaseGenerator):
+class EVEXMLGeneratorV2:
     """
     Enhanced XML Generator using Netshot and DHCP database
-    Extends the base generator with new data source integration
+    Standalone V2 generator with modern data source integration
     """
     
     def __init__(self):
         """Initialize V2 generator with new data sources"""
-        super().__init__()
+        # Setup logging
+        self.logger = logging.getLogger('eve_xml_generator_v2')
+        self.logger.setLevel(logging.DEBUG)
         
         # Initialize new integrations
         self.netshot = get_netshot_client()
