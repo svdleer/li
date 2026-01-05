@@ -24,7 +24,7 @@ WEBAPP_PORT="8502"
 
 # Local ports
 LOCAL_SSH_PORT="2222"
-LOCAL_WEBAPP_PORT="8502"
+LOCAL_WEBAPP_PORT="8080"
 
 # Colors for output
 RED='\033[0;31m'
