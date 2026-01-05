@@ -62,9 +62,12 @@
         {% set has_issues = true %}
     {% endif %}
     
-    {% if device.get('dhcp_validation') and device.get('public_subnet_count') != device.dhcp_validation.get('dhcp_scopes_count', 0) %}
-        {% set _ = issues.append('Count Mismatch') %}
-        {% set has_issues = true %}
+    {% if device.get('dhcp_validation') %}
+        {% set dhcp_val = device.dhcp_validation %}
+        {% if dhcp_val.missing_in_dhcp and dhcp_val.missing_in_dhcp|length > 0 %}
+            {% set _ = issues.append('Missing in DHCP') %}
+            {% set has_issues = true %}
+        {% endif %}
     {% endif %}
     
     {% if has_issues %}
