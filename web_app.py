@@ -1201,7 +1201,7 @@ def search_page():
                          user=session.get("user"),
                          app_title=APP_TITLE,
                          query=query,
-                         results=results)
+                         results={'total_matches': len(results), 'devices': results})
 
 
 @app.route("/dashboard")
