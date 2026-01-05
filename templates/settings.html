@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Application Settings - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">
+        <i class="bi bi-gear-fill"></i> Application Settings
+    </h2>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <h5 class="mb-3">MySQL Database</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Host</label>
+                        <input type="text" class="form-control" name="mysql_host" 
+                               value="{{ settings.mysql_host.value if settings.mysql_host else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Port</label>
+                        <input type="text" class="form-control" name="mysql_port" 
+                               value="{{ settings.mysql_port.value if settings.mysql_port else '' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="mysql_user" 
+                               value="{{ settings.mysql_user.value if settings.mysql_user else '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="mysql_password" 
+                               value="{{ settings.mysql_password.value if settings.mysql_password else '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Database</label>
+                        <input type="text" class="form-control" name="mysql_database" 
+                               value="{{ settings.mysql_database.value if settings.mysql_database else '' }}">
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h5 class="mb-3">Netshot API</h5>
+                <div class="mb-3">
+                    <label class="form-label">API URL</label>
+                    <input type="text" class="form-control" name="netshot_url" 
+                           value="{{ settings.netshot_url.value if settings.netshot_url else '' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">API Key</label>
+                    <input type="password" class="form-control" name="netshot_api_key" 
+                           value="{{ settings.netshot_api_key.value if settings.netshot_api_key else '' }}">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">CMTS Group</label>
+                        <input type="text" class="form-control" name="netshot_cmts_group" 
+                               value="{{ settings.netshot_cmts_group.value if settings.netshot_cmts_group else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">PE Group</label>
+                        <input type="text" class="form-control" name="netshot_pe_group" 
+                               value="{{ settings.netshot_pe_group.value if settings.netshot_pe_group else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Settings
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

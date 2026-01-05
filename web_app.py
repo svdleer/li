@@ -794,6 +794,54 @@ def api_audit_export():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+@require_permission(Permission.MANAGE_SYSTEM)
+def settings_page():
+    """Application settings page (admin only)"""
+    config_mgr = get_config_manager()
+    
+    if request.method == "POST":
+        try:
+            username = session.get("user", {}).get("name", "admin")
+            
+            # Update settings
+            settings_to_update = [
+                'mysql_host', 'mysql_port', 'mysql_user', 'mysql_password', 'mysql_database',
+                'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group'
+            ]
+            
+            for setting_key in settings_to_update:
+                value = request.form.get(setting_key, '')
+                config_mgr.set_setting(setting_key, value, username)
+            
+            # Clear cache to force reload
+            config_mgr.clear_cache()
+            
+            flash("Settings updated successfully!", "success")
+            logger.info(f"Settings updated by {username}")
+            
+            # Audit log
+            audit = get_audit_logger()
+            audit.log(
+                username=username,
+                category=audit.CATEGORY_CONFIG_CHANGE,
+                action="Updated application settings"
+            )
+            
+        except Exception as e:
+            logger.error(f"Error updating settings: {e}")
+            flash(f"Error updating settings: {str(e)}", "danger")
+    
+    # Get all settings
+    settings = config_mgr.get_all_settings()
+    
+    return render_template("settings.html",
+                         user=session.get("user"),
+                         app_title=APP_TITLE,
+                         settings=settings)
+
+
 @app.route("/user-management")
 @login_required
 @require_permission(Permission.MANAGE_USERS)
