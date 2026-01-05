@@ -38,13 +38,14 @@ ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=web_app.py
 ENV FLASK_HOST=0.0.0.0
 ENV FLASK_PORT=8502
+ENV NO_PROXY=localhost,127.0.0.1
 
 # Expose port
 EXPOSE 8502
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8502/health || exit 1
+    CMD curl -f --noproxy localhost http://localhost:8502/health || exit 1
 
 # Run the application
 CMD ["python", "web_app.py"]
