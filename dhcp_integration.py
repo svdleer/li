@@ -14,7 +14,7 @@ import os
 import logging
 import mysql.connector
 from typing import List, Dict, Optional, Tuple
-from contextlib import contextmanager
+from contextmanager import contextmanager
 
 
 class DHCPIntegration:
@@ -30,14 +30,30 @@ class DHCPIntegration:
         """
         self.logger = logging.getLogger('dhcp_integration')
         
-        # Use provided config or load from environment
-        self.db_config = db_config or {
-            'host': os.getenv('DHCP_DB_HOST', os.getenv('DB_HOST', 'localhost')),
-            'database': os.getenv('DHCP_DB_DATABASE', os.getenv('DB_DATABASE', 'dhcp')),
-            'user': os.getenv('DHCP_DB_USER', os.getenv('DB_USER', '')),
-            'password': os.getenv('DHCP_DB_PASSWORD', os.getenv('DB_PASSWORD', '')),
-            'port': int(os.getenv('DHCP_DB_PORT', os.getenv('DB_PORT', '3306')))
-        }
+        # Use provided config or load from ConfigManager/environment
+        if db_config:
+            self.db_config = db_config
+        else:
+            try:
+                from config_manager import get_config_manager
+                config_mgr = get_config_manager()
+                self.db_config = {
+                    'host': config_mgr.get_setting('mysql_host') or os.getenv('MYSQL_HOST', 'localhost'),
+                    'database': config_mgr.get_setting('mysql_database') or os.getenv('MYSQL_DATABASE', 'li_xml'),
+                    'user': config_mgr.get_setting('mysql_user') or os.getenv('MYSQL_USER', 'access'),
+                    'password': config_mgr.get_setting('mysql_password') or os.getenv('MYSQL_PASSWORD', ''),
+                    'port': int(config_mgr.get_setting('mysql_port') or os.getenv('MYSQL_PORT', '3306'))
+                }
+                self.logger.info("Loaded database config from ConfigManager")
+            except Exception as e:
+                self.logger.warning(f"Could not load from ConfigManager, using environment: {e}")
+                self.db_config = {
+                    'host': os.getenv('MYSQL_HOST', 'localhost'),
+                    'database': os.getenv('MYSQL_DATABASE', 'li_xml'),
+                    'user': os.getenv('MYSQL_USER', 'access'),
+                    'password': os.getenv('MYSQL_PASSWORD', ''),
+                    'port': int(os.getenv('MYSQL_PORT', '3306'))
+                }
     
     @contextmanager
     def get_db_connection(self):
@@ -48,6 +64,7 @@ class DHCPIntegration:
             yield conn
         except mysql.connector.Error as e:
             self.logger.error(f"Database connection error: {e}")
+            self.logger.error("Please check database settings in application configuration")
             raise
         finally:
             if conn and conn.is_connected():

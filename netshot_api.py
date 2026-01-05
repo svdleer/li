@@ -50,8 +50,19 @@ class NetshotAPI:
             use_cache: Enable caching (default: True)
             cache_ttl: Cache TTL in seconds (default: from env or 24 hours)
         """
-        self.base_url = base_url or os.getenv('NETSHOT_API_URL', 'https://netshot.local/api')
-        self.api_key = api_key or os.getenv('NETSHOT_API_KEY', '')
+        # Try to load from ConfigManager first, fall back to env vars
+        try:
+            from config_manager import get_config_manager
+            config_mgr = get_config_manager()
+            self.base_url = base_url or config_mgr.get_setting('netshot_url') or os.getenv('NETSHOT_API_URL', '')
+            self.api_key = api_key or config_mgr.get_setting('netshot_api_key') or os.getenv('NETSHOT_API_KEY', '')
+            if not self.base_url:
+                logging.warning("Netshot URL not configured. Please configure in application settings.")
+        except Exception as e:
+            logging.warning(f"Could not load from ConfigManager: {e}")
+            self.base_url = base_url or os.getenv('NETSHOT_API_URL', '')
+            self.api_key = api_key or os.getenv('NETSHOT_API_KEY', '')
+        
         self.username = username or os.getenv('NETSHOT_USERNAME', '')
         self.password = password or os.getenv('NETSHOT_PASSWORD', '')
         self.timeout = timeout
@@ -69,7 +80,7 @@ class NetshotAPI:
             self.cache = None
             self.logger.info("Caching disabled")
         
-        if not self.base_url.endswith('/'):
+        if self.base_url and not self.base_url.endswith('/'):
             self.base_url += '/'
     
     def _extract_oss10_from_comments(self, comments: str) -> Optional[str]:
