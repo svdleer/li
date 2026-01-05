@@ -2234,28 +2234,18 @@ if __name__ == "__main__":
     
     # Create default admin user if users table is empty
     try:
-        conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) as count FROM users")
-            result = cursor.fetchone()
-            user_count = result[0] if result else 0
-            
-            if user_count == 0:
-                # Create default admin user: admin/admin
-                default_password = "admin"
-                password_hash = bcrypt.hashpw(default_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                
-                cursor.execute(
-                    "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)",
-                    ('admin', 'admin@localhost', password_hash, 'admin')
-                )
-                conn.commit()
+        rbac_mgr = get_rbac_manager()
+        # Check if any users exist
+        users = rbac_mgr.get_all_users()
+        
+        if not users or len(users) == 0:
+            # Create default admin user: admin/admin
+            default_password = "admin"
+            if rbac_mgr.create_user('admin', 'admin@localhost', default_password, 'admin'):
                 logger.info("Default admin user created (username: admin, password: admin)")
                 logger.warning("SECURITY: Please change the default admin password immediately!")
-            
-            cursor.close()
-            conn.close()
+            else:
+                logger.error("Failed to create default admin user")
     except Exception as e:
         logger.error(f"Error checking/creating default admin user: {e}")
     
