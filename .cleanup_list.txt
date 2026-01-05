@@ -1,0 +1,55 @@
+# Obsolete test scripts
+test.sh
+test_api.py
+test_diagnostic.py
+test_diagnostic_actual.py
+test_diagnostic_fix.py
+test_ipv6.py
+test_netshot_connection.py
+test_subnets.py
+final_test.py
+
+# Obsolete/redundant markdown files
+ARCHITECTURE_V2.md
+CACHE_CRONTAB.md
+CACHE_README.md
+CONFIGURATION.md
+CRONTAB_SETUP.md
+DEMO_README.md
+DEPLOYMENT.md
+DOCKER_DEPLOYMENT.md
+FILE_STRUCTURE.md
+PHASE1_IMPLEMENTATION.md
+QUICKSTART.md
+README_CURRENT_CONFIG.md
+README_V2.md
+TRANSFORMATION_SUMMARY.md
+UPLOAD_README.md
+
+# Old/demo scripts
+demo_data.py
+web_app_demo.py
+run_demo.sh
+mock_upload_server.py
+fix_missing_loopbacks.py
+fix_missing_oss10.py
+
+# Old perl scripts
+evexml.pl
+infraxmlupload.pl
+shoxml.pl
+sohoxmlupload.pl
+
+# Old shell/batch scripts
+run_eve_xml.bat
+docker-run.sh
+ssh-tunnel.sh
+
+# Old PHP
+status.php
+
+# Old v2 generator (superseded by current)
+eve_li_xml_generator_v2.py
+
+# Old javascript
+net.js
