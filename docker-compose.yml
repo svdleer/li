@@ -36,6 +36,9 @@ services:
       - MYSQL_HOST=host.docker.internal
       # Set timezone
       - TZ=Europe/Amsterdam
+      # Bypass proxy for internal hosts
+      - NO_PROXY=localhost,127.0.0.1,.oss.local,netshot.oss.local
+      - no_proxy=localhost,127.0.0.1,.oss.local,netshot.oss.local
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
