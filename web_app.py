@@ -796,7 +796,7 @@ def api_audit_export():
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
-@require_permission(Permission.MANAGE_SYSTEM)
+@require_permission(Permission.MODIFY_CONFIG)
 def settings_page():
     """Application settings page (admin only)"""
     config_mgr = get_config_manager()
