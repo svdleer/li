@@ -29,6 +29,12 @@ services:
     # All settings loaded from .env file (same as local development)
     # Override hosts to reach Mac host from container
     environment:
+      # Bootstrap database credentials for ConfigManager
+      - BOOTSTRAP_MYSQL_HOST=host.docker.internal
+      - BOOTSTRAP_MYSQL_PORT=3306
+      - BOOTSTRAP_MYSQL_USER=access
+      - BOOTSTRAP_MYSQL_PASSWORD=44cC3sS
+      - BOOTSTRAP_MYSQL_DATABASE=li_xml
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=8502
       # Point to Mac host for tunneled services
