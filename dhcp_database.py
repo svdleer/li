@@ -238,8 +238,13 @@ class DHCPDatabase:
             netshot_ipv6_scope_set = set(public_ipv6_subnets)
             result['ipv6_missing_in_dhcp'] = list(netshot_ipv6_scope_set - dhcp_ipv6_scope_set)
             result['ipv6_matched'] = list(netshot_ipv6_scope_set & dhcp_ipv6_scope_set)
+            # Merge IPv6 into main arrays for storage
+            result['missing_in_dhcp'].extend(result['ipv6_missing_in_dhcp'])
+            result['matched'].extend(result['ipv6_matched'])
         else:
             result['ipv6_missing_in_dhcp'] = public_ipv6_subnets
+            # Add unmatched IPv6 to missing
+            result['missing_in_dhcp'].extend(public_ipv6_subnets)
         
         return result
     
