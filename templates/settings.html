@@ -44,9 +44,19 @@
                                value="{{ settings.mysql_password.value if settings.mysql_password else '' }}">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Database</label>
+                        <label class="form-label">Database (DHCP Data)</label>
                         <input type="text" class="form-control" name="mysql_database" 
                                value="{{ settings.mysql_database.value if settings.mysql_database else '' }}">
+                        <small class="form-text text-muted">Database with DHCP scopes (default: access)</small>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Cache Database</label>
+                        <input type="text" class="form-control" name="cache_database" 
+                               value="{{ settings.cache_database.value if settings.cache_database else '' }}">
+                        <small class="form-text text-muted">Database for cache tables (default: li_xml)</small>
                     </div>
                 </div>
 
