@@ -37,14 +37,14 @@ RUN mkdir -p logs output .cache .flask_session
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=web_app.py
 ENV FLASK_HOST=0.0.0.0
-ENV FLASK_PORT=5000
+ENV FLASK_PORT=8080
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Run the application
 CMD ["python", "web_app.py"]
