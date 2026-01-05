@@ -1125,14 +1125,83 @@ def api_delete_user(email):
 @app.route("/search")
 @login_required
 def search_page():
-    """Search page"""
-    # TODO: Implement actual search functionality
-    query = request.args.get('q', '')
+    """Search for IP/subnet across devices and show DHCP/XML status"""
+    query = request.args.get('q', '').strip()
+    results = []
+    
+    if query:
+        try:
+            netshot_client = get_netshot_client()
+            
+            # Get all devices (CMTS and PE)
+            cmts_devices = netshot_client.get_cmts_devices()
+            pe_devices = netshot_client.get_pe_devices()
+            all_devices = cmts_devices + pe_devices
+            
+            # Search through devices for matching subnets
+            for device in all_devices:
+                device_name = device.get('name', '')
+                device_type = 'CMTS' if device in cmts_devices else 'PE'
+                subnets = device.get('subnets', [])
+                
+                # Check if query matches any subnet (exact or partial match)
+                matching_subnets = [s for s in subnets if query in s]
+                
+                if matching_subnets:
+                    # Get DHCP validation status
+                    dhcp_status = 'Unknown'
+                    in_dhcp = False
+                    
+                    if device_type == 'CMTS':
+                        # Check DHCP validation cache
+                        try:
+                            from dhcp_database import DHCPDatabase
+                            dhcp_db = DHCPDatabase()
+                            if dhcp_db.connect():
+                                cursor = dhcp_db.connection.cursor()
+                                cursor.execute(
+                                    f"SELECT matched, missing_in_dhcp FROM {dhcp_db.cache_database}.dhcp_validation_cache WHERE device_name = %s",
+                                    (device_name,)
+                                )
+                                row = cursor.fetchone()
+                                cursor.close()
+                                dhcp_db.disconnect()
+                                
+                                if row:
+                                    import json
+                                    matched = json.loads(row['matched']) if row['matched'] else []
+                                    missing = json.loads(row['missing_in_dhcp']) if row['missing_in_dhcp'] else []
+                                    
+                                    # Check if any matching subnet is in DHCP
+                                    for subnet in matching_subnets:
+                                        if subnet in matched:
+                                            in_dhcp = True
+                                            dhcp_status = 'Connected'
+                                            break
+                                        elif subnet in missing:
+                                            dhcp_status = 'Missing'
+                        except Exception as e:
+                            logger.error(f"Error checking DHCP status: {e}")
+                    
+                    results.append({
+                        'device_name': device_name,
+                        'device_type': device_type,
+                        'subnets': matching_subnets,
+                        'dhcp_status': dhcp_status,
+                        'in_dhcp': in_dhcp,
+                        'loopback': device.get('loopback'),
+                        'primary_subnet': device.get('primary_subnet')
+                    })
+        
+        except Exception as e:
+            logger.error(f"Search error: {e}")
+            flash(f"Search error: {str(e)}", "danger")
+    
     return render_template("search.html",
                          user=session.get("user"),
                          app_title=APP_TITLE,
                          query=query,
-                         results=[])
+                         results=results)
 
 
 @app.route("/dashboard")
