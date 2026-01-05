@@ -19,10 +19,12 @@ CONTROL_PERSIST="10m"
 PROD_SERVER="appdb-sh.oss.local"
 
 # Remote ports
-WEBAPP_PORT="8080"
+SSH_PORT="22"
+WEBAPP_PORT="8502"
 
 # Local ports
-LOCAL_WEBAPP_PORT="8080"
+LOCAL_SSH_PORT="2222"
+LOCAL_WEBAPP_PORT="8502"
 
 # Colors for output
 RED='\033[0;31m'
@@ -103,16 +105,20 @@ case "$1" in
     if ! check_control_master; then
         start_control_master || exit 1
         sleep 1
-    fiweb app on production server
+    fi
+    
+    # Start tunnels to production server
+    start_tunnel "SSH Access" "$LOCAL_SSH_PORT" "$PROD_SERVER" "$SSH_PORT"
     start_tunnel "Web Application" "$LOCAL_WEBAPP_PORT" "$PROD_SERVER" "$WEBAPP_PORT"
     
     echo "================================"
-    echo -e "${GREEN}Tunnel started!${NC}\n"
+    echo -e "${GREEN}Tunnels started!${NC}\n"
     
-    echo -e "${YELLOW}Access the web app:${NC}"
-    echo "http://localhost:${LOCAL_WEBAPP your .env or docker-compose.yml:${NC}"
-    echo "DB_HOST=host.docker.internal"
-    echo "DB_PORT=${LOCAL_PROD_DB_PORT}"
+    echo -e "${YELLOW}SSH to server:${NC}"
+    echo "ssh -p ${LOCAL_SSH_PORT} root@localhost"
+    echo ""
+    echo -e "${YELLOW}Access web app:${NC}"
+    echo "http://localhost:${LOCAL_WEBAPP_PORT}"
     echo ""
     ;;
     
@@ -147,28 +153,41 @@ case "$1" in
     
     echo ""
     
-    # Check tunnel port
-    if lsof -Pi :$LOCAL_PROD_DB_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo -e "${GREENWEBAPP_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+    # Check tunnel ports
+    if lsof -Pi :$LOCAL_SSH_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ SSH: localhost:$LOCAL_SSH_PORT -> $PROD_SERVER:$SSH_PORT${NC}"
+    else
+        echo -e "${RED}✗ SSH: Not listening${NC}"
+    fi
+    
+    if lsof -Pi :$LOCAL_WEBAPP_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Web App: localhost:$LOCAL_WEBAPP_PORT -> $PROD_SERVER:$WEBAPP_PORT${NC}"
     else
-        echo -e "${RED}✗ Web App
+        echo -e "${RED}✗ Web App: Not listening${NC}"
+    fi
     
     echo "================================"
     echo ""
     ;;
     
   test)
-    echo -e "\n${YELLOW}Testing Connection...${NC}"
+    echo -e "\n${YELLOW}Testing Connections...${NC}"
     echo "================================"
     
-    echo -n "Production MySQL (appdb-sh.oss.local)... "
-    if nc -z Web App (appdb-sh.oss.local:8080)... "
+    echo -n "SSH tunnel (localhost:2222)... "
+    if nc -z localhost "$LOCAL_SSH_PORT" 2>/dev/null; then
+        echo -e "${GREEN}✓ OK${NC}"
+    else
+        echo -e "${RED}✗ Failed${NC}"
+    fi
+    
+    echo -n "Web App (localhost:8080)... "
     if curl -s --connect-timeout 5 "http://localhost:${LOCAL_WEBAPP_PORT}/" >/dev/null 2>&1; then
         echo -e "${GREEN}✓ OK - Web app is accessible${NC}"
         echo -e "${BLUE}   Access at: http://localhost:${LOCAL_WEBAPP_PORT}${NC}"
     else
-        echo -e "${RED}✗ Failed - Web app
+        echo -e "${RED}✗ Failed - Web app not accessible${NC}"
+    fi
     
     echo "================================"
     echo ""
