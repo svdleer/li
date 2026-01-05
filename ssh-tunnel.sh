@@ -81,14 +81,14 @@ start_tunnel() {
         return 1
     fi
     
-    # Start tunnel using existing control master
+    # Start tunnel using existing control master, bind to 127.0.0.1
     ssh -f -N \
         -S "$CONTROL_PATH" \
-        -L "${local_port}:${remote_host}:${remote_port}" \
+        -L "127.0.0.1:${local_port}:${remote_host}:${remote_port}" \
         "$JUMP_SERVER" 2>/dev/null
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ $name tunnel: localhost:$local_port -> $remote_host:$remote_port${NC}"
+        echo -e "${GREEN}✓ $name tunnel: 127.0.0.1:$local_port -> $remote_host:$remote_port${NC}"
         return 0
     else
         echo -e "${RED}✗ Failed to start $name tunnel${NC}"
@@ -107,15 +107,19 @@ case "$1" in
         sleep 1
     fi
     
-    # Start tunnels to production server
+    # Start SSH tunnel with port forwarding
     start_tunnel "SSH Access" "$LOCAL_SSH_PORT" "$PROD_SERVER" "$SSH_PORT"
-    start_tunnel "Web Application" "$LOCAL_WEBAPP_PORT" "$PROD_SERVER" "$WEBAPP_PORT"
+    
+    # Add local port forward through the SSH tunnel
+    echo -ne "${YELLOW}✓ Web Application: localhost:${LOCAL_WEBAPP_PORT} -> appdb-sh.oss.local:${WEBAPP_PORT}${NC}"
+    ssh -f -N -L ${LOCAL_WEBAPP_PORT}:localhost:${WEBAPP_PORT} -p ${LOCAL_SSH_PORT} svdleer@localhost &
+    echo -e " ${GREEN}✓${NC}"
     
     echo "================================"
     echo -e "${GREEN}Tunnels started!${NC}\n"
     
     echo -e "${YELLOW}SSH to server:${NC}"
-    echo "ssh -p ${LOCAL_SSH_PORT} root@localhost"
+    echo "ssh -p ${LOCAL_SSH_PORT} svdleer@localhost"
     echo ""
     echo -e "${YELLOW}Access web app:${NC}"
     echo "http://localhost:${LOCAL_WEBAPP_PORT}"
