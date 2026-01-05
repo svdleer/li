@@ -14,7 +14,7 @@ import os
 import logging
 import mysql.connector
 from typing import List, Dict, Optional, Tuple
-from contextmanager import contextmanager
+from contextlib import contextmanager
 
 
 class DHCPIntegration:
