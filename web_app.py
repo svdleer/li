@@ -835,6 +835,7 @@ def settings_page():
     
     # Get all settings
     settings = config_mgr.get_all_settings()
+    logger.info(f"Retrieved {len(settings)} settings from database")
     
     # Add environment variable fallbacks for display
     env_defaults = {
@@ -851,8 +852,21 @@ def settings_page():
     
     # Use database value if exists, otherwise use env default
     for key, env_default in env_defaults.items():
-        if key in settings and not settings[key]['value']:
-            settings[key]['value'] = env_default
+        if key in settings:
+            if not settings[key]['value']:
+                settings[key]['value'] = env_default
+                logger.debug(f"Prefilled {key} with env default: {env_default if 'password' not in key else '***'}")
+        else:
+            # Setting doesn't exist in DB yet, create it with env default
+            settings[key] = {
+                'value': env_default,
+                'type': 'password' if 'password' in key or 'key' in key else 'string',
+                'description': f'{key} from environment',
+                'is_required': True,
+                'updated_at': None,
+                'updated_by': None
+            }
+            logger.debug(f"Created setting {key} with env default")
     
     return render_template("settings.html",
                          user=session.get("user"),
