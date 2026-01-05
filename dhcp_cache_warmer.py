@@ -58,8 +58,8 @@ def warm_dhcp_cache():
                 primary = device.get('primary_subnet')
                 subnets = device.get('subnets', [])
                 
-                # Separate IPv4 and IPv6 subnets
-                ipv4_subnets = [s for s in subnets if '.' in s and ':' not in s]
+                # Separate IPv4 and IPv6 subnets, exclude primary from IPv4
+                ipv4_subnets = [s for s in subnets if '.' in s and ':' not in s and s != primary]
                 ipv6_subnets = [s for s in subnets if ':' in s]
                 
                 if primary and dhcp_hostname:
