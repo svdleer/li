@@ -226,10 +226,12 @@ class DHCPDatabase:
         
         # Validate IPv4
         if not result['has_dhcp']:
-            result['missing_in_dhcp'] = public_ipv4_subnets
+            # Filter out primary subnet from missing list
+            result['missing_in_dhcp'] = [s for s in public_ipv4_subnets if s != primary_subnet]
         else:
             dhcp_scope_set = {scope['scope'] for scope in public_dhcp_scopes}
-            netshot_scope_set = set(public_ipv4_subnets)
+            # Also filter out primary subnet from Netshot subnets before comparison
+            netshot_scope_set = {s for s in public_ipv4_subnets if s != primary_subnet}
             result['missing_in_dhcp'] = list(netshot_scope_set - dhcp_scope_set)
             result['extra_in_dhcp'] = list(dhcp_scope_set - netshot_scope_set)
             result['matched'] = list(netshot_scope_set & dhcp_scope_set)
