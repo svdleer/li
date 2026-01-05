@@ -16,7 +16,7 @@ import sys
 import logging
 from datetime import datetime
 from netshot_api import NetshotAPI
-from dhcp_database import DHCPDatabase
+from dhcp_integration import DHCPIntegration as DHCPDatabase
 from app_cache import AppCache
 
 # Configure logging
@@ -73,7 +73,7 @@ def warm_device_validation_cache():
                 subnets = device.get('subnets', [])
                 
                 # Separate IPv4 and IPv6 subnets, filter only PUBLIC ones
-                from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                from subnet_utils import is_public_ipv4, is_public_ipv6
                 ipv4_subnets = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
                 ipv6_subnets = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
                 

@@ -1163,7 +1163,7 @@ def dashboard():
         pe_filtered = [d for d in pe_devices if d.get('name') != '[NONAME]']
         
         # Count public subnets
-        from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+        from subnet_utils import is_public_ipv4, is_public_ipv6
         total_public_subnets = 0
         devices_with_dhcp = 0
         devices_with_loopback = 0
@@ -1258,7 +1258,7 @@ def refresh_device(device_name):
     try:
         from cache_manager import CacheManager
         from app_cache import AppCache
-        from dhcp_database import DHCPDatabase
+        from dhcp_integration import DHCPIntegration as DHCPDatabase
         import hashlib
         
         # Get the device ID first (we need it for cache keys)
@@ -1313,7 +1313,7 @@ def refresh_device(device_name):
                     primary = device_data.get('primary_subnet')
                     
                     # Separate IPv4 and IPv6 subnets
-                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                    from subnet_utils import is_public_ipv4, is_public_ipv6
                     ipv4_subnets = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
                     ipv6_subnets = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
                     
@@ -1394,7 +1394,7 @@ def devices():
         
         if device_type in ['all', 'cmts']:
             import concurrent.futures
-            from dhcp_database import DHCPDatabase
+            from dhcp_integration import DHCPIntegration as DHCPDatabase
             
             # Fetch CMTS devices from Netshot
             all_cmts = netshot_client.get_cmts_devices(force_refresh)
@@ -1408,7 +1408,7 @@ def devices():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from dhcp_database import DHCPDatabase
+                from dhcp_integration import DHCPIntegration as DHCPDatabase
                 dhcp_db = DHCPDatabase()
                 logger.info(f"Attempting DHCP database connection to {dhcp_db.host}:{dhcp_db.port}/{dhcp_db.database}")
                 if dhcp_db.connect():
@@ -1431,7 +1431,7 @@ def devices():
                     logger.info(f"Loaded DHCP validation for {len(validation_cache)} devices from cache")
                     
                     # Apply cached validation data to devices
-                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                    from subnet_utils import is_public_ipv4, is_public_ipv6
                     devices_with_dhcp = 0
                     for device in cmts_devices:
                         device_name = device.get('name')
@@ -1497,7 +1497,7 @@ def devices_data():
         
         if device_type in ['all', 'cmts']:
             import concurrent.futures
-            from dhcp_database import DHCPDatabase
+            from dhcp_integration import DHCPIntegration as DHCPDatabase
             
             # Start fetching CMTS devices from Netshot (this may use cache or hit API)
             all_cmts_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
@@ -1524,7 +1524,7 @@ def devices_data():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from dhcp_database import DHCPDatabase
+                from dhcp_integration import DHCPIntegration as DHCPDatabase
                 dhcp_db = DHCPDatabase()
                 if dhcp_db.connect():
                     # Fetch all device validations from dhcp_validation_cache table in one query
@@ -1544,7 +1544,7 @@ def devices_data():
                             }
                     
                     # Apply cached validation data to devices
-                    from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                    from subnet_utils import is_public_ipv4, is_public_ipv6
                     for device in cmts_devices:
                         device_name = device.get('name')
                         cached_data = validation_cache.get(device_name)
