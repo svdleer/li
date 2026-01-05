@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Initial Setup - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-gear-fill"></i> Initial Setup Wizard
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i> 
+                    <strong>Welcome!</strong> Please configure the application settings to get started.
+                    Default admin credentials are <code>admin / admin</code>. Please change this password after setup.
+                </div>
+
+                <form method="POST" action="{{ url_for('setup') }}">
+                    <!-- MySQL Database Configuration -->
+                    <h5 class="mt-4 mb-3">
+                        <i class="bi bi-database-fill text-primary"></i> MySQL Database Configuration
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="mysql_host" class="form-label">Database Host *</label>
+                            <input type="text" class="form-control" id="mysql_host" name="mysql_host" 
+                                   value="{{ settings.mysql_host.value if settings else '' }}" required>
+                            <small class="form-text text-muted">e.g., localhost or database.example.com</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="mysql_port" class="form-label">Port *</label>
+                            <input type="number" class="form-control" id="mysql_port" name="mysql_port" 
+                                   value="{{ settings.mysql_port.value if settings else '3306' }}" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mysql_user" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="mysql_user" name="mysql_user" 
+                                   value="{{ settings.mysql_user.value if settings else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mysql_password" class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="mysql_password" name="mysql_password" 
+                                   value="{{ settings.mysql_password.value if settings else '' }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="mysql_database" class="form-label">Database Name *</label>
+                        <input type="text" class="form-control" id="mysql_database" name="mysql_database" 
+                               value="{{ settings.mysql_database.value if settings else '' }}" required>
+                        <small class="form-text text-muted">Name of the database containing device data</small>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Netshot Configuration -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-cloud-fill text-success"></i> Netshot API Configuration
+                    </h5>
+                    <div class="mb-3">
+                        <label for="netshot_url" class="form-label">Netshot API URL *</label>
+                        <input type="url" class="form-control" id="netshot_url" name="netshot_url" 
+                               value="{{ settings.netshot_url.value if settings else '' }}" required
+                               placeholder="https://netshot.oss.local/api">
+                        <small class="form-text text-muted">Full URL to the Netshot API endpoint</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="netshot_api_key" class="form-label">API Key *</label>
+                        <input type="password" class="form-control" id="netshot_api_key" name="netshot_api_key" 
+                               value="{{ settings.netshot_api_key.value if settings else '' }}" required>
+                        <small class="form-text text-muted">Authentication key for Netshot API access</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="netshot_cmts_group" class="form-label">CMTS Device Group *</label>
+                            <input type="text" class="form-control" id="netshot_cmts_group" name="netshot_cmts_group" 
+                                   value="{{ settings.netshot_cmts_group.value if settings else '' }}" required
+                                   placeholder="CMTS">
+                            <small class="form-text text-muted">Netshot group name for CMTS devices</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="netshot_pe_group" class="form-label">PE Device Group *</label>
+                            <input type="text" class="form-control" id="netshot_pe_group" name="netshot_pe_group" 
+                                   value="{{ settings.netshot_pe_group.value if settings else '' }}" required
+                                   placeholder="PE">
+                            <small class="form-text text-muted">Netshot group name for PE devices</small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle-fill"></i> Save Configuration & Start
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

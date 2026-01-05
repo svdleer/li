@@ -632,9 +632,59 @@ def inject_system_status():
 # Main Application Routes
 # ============================================================================
 
+@app.route("/setup", methods=["GET", "POST"])
+def setup():
+    """Initial setup wizard"""
+    config_mgr = get_config_manager()
+    
+    # If already initialized, redirect to dashboard
+    if config_mgr.is_app_initialized():
+        return redirect(url_for('index'))
+    
+    if request.method == "POST":
+        try:
+            # Get current user (should be admin)
+            username = session.get("user", {}).get("name", "setup")
+            
+            # Save all settings
+            settings_to_save = [
+                'mysql_host', 'mysql_port', 'mysql_user', 'mysql_password', 'mysql_database',
+                'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group'
+            ]
+            
+            for setting_key in settings_to_save:
+                value = request.form.get(setting_key, '')
+                config_mgr.set_setting(setting_key, value, username)
+            
+            # Mark app as initialized
+            config_mgr.mark_app_initialized(username)
+            
+            flash("Configuration saved successfully! Please log in to continue.", "success")
+            logger.info(f"Initial setup completed by {username}")
+            
+            # Clear session and redirect to login
+            session.clear()
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            logger.error(f"Error saving setup configuration: {e}")
+            flash(f"Error saving configuration: {str(e)}", "danger")
+    
+    # GET: show setup form
+    settings = config_mgr.get_all_settings()
+    return render_template("setup.html", 
+                         settings=settings,
+                         app_title=APP_TITLE)
+
+
 @app.route("/")
 def index():
     """Home page / Dashboard"""
+    # Check if app needs setup
+    config_mgr = get_config_manager()
+    if not config_mgr.is_app_initialized():
+        return redirect(url_for('setup'))
+    
     return render_template("index.html", 
                          user=session.get("user"),
                          app_title=APP_TITLE,
