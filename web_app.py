@@ -846,8 +846,8 @@ def settings_page():
         'mysql_database': os.getenv('MYSQL_DATABASE', 'li_xml'),
         'netshot_url': os.getenv('NETSHOT_API_URL', 'https://netshot.oss.local/api'),
         'netshot_api_key': os.getenv('NETSHOT_API_KEY', ''),
-        'netshot_cmts_group': 'CMTS',
-        'netshot_pe_group': 'PE'
+        'netshot_cmts_group': os.getenv('NETSHOT_CMTS_GROUP', ''),
+        'netshot_pe_group': os.getenv('NETSHOT_PE_GROUP', '')
     }
     
     # Use database value if exists, otherwise use env default
