@@ -161,27 +161,3 @@
     </form>
 </div>
 {% endblock %}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">CMTS Group</label>
-                        <input type="text" class="form-control" name="netshot_cmts_group" 
-                               value="{{ settings.netshot_cmts_group.value if settings.netshot_cmts_group else '' }}">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">PE Group</label>
-                        <input type="text" class="form-control" name="netshot_pe_group" 
-                               value="{{ settings.netshot_pe_group.value if settings.netshot_pe_group else '' }}">
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save Settings
-                    </button>
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
