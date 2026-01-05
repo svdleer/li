@@ -18,11 +18,11 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top py-0" style="min-height: 50px;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="{{ url_for('static', filename='img/vodafoneziggo-logo.png') }}" alt="VFZ Logo" class="navbar-logo">
-                <span>
+            <a class="navbar-brand py-1" href="/">
+                <img src="{{ url_for('static', filename='img/vodafoneziggo-logo.png') }}" alt="VFZ Logo" class="navbar-logo" style="height: 30px;">
+                <span style="font-size: 0.9rem;">
                     <i class="bi bi-broadcast-pin"></i> EVE LI XML Generator (DEMO)
                 </span>
             </a>
@@ -33,37 +33,51 @@
                 <ul class="navbar-nav me-auto">
                     {% if user %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('dashboard') }}">
+                            <div><i class="bi bi-speedometer2 fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Dashboard</small>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('devices') }}">
-                            <i class="bi bi-router"></i> Devices
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('devices') }}">
+                            <div><i class="bi bi-router fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Devices</small>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('xml_status') }}">
-                            <i class="bi bi-file-earmark-code"></i> XML Status
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('xml_status') }}">
+                            <div><i class="bi bi-file-earmark-code fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">XML Status</small>
                         </a>
                     </li>
                     {% if check_permission('view_audit_log') %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('audit_log_page') }}">
-                            <i class="bi bi-clock-history"></i> Audit Log
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('audit_log_page') }}">
+                            <div><i class="bi bi-clock-history fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Audit Log</small>
                         </a>
                     </li>
                     {% endif %}
                     {% if check_permission('manage_users') %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('user_management') }}">
-                            <i class="bi bi-people"></i> User Management
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('user_management') }}">
+                            <div><i class="bi bi-people fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Users</small>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if check_permission('view_validation') %}
+                    <li class="nav-item">
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('scheduled_tasks') }}">
+                            <div><i class="bi bi-calendar-event fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Tasks</small>
                         </a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('health') }}">
-                            <i class="bi bi-heart-pulse"></i> Health
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('health') }}">
+                            <div><i class="bi bi-heart-pulse fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Health</small>
                         </a>
                     </li>
                     {% endif %}
@@ -71,14 +85,14 @@
                 
                 <!-- Search Bar (NEW) -->
                 {% if user %}
-                <form class="d-flex me-3" action="{{ url_for('search_page') }}" method="get">
-                    <input class="form-control form-control-sm me-2" 
+                <form class="d-flex me-2" action="{{ url_for('search_page') }}" method="get">
+                    <input class="form-control form-control-sm me-1" 
                            type="search" 
                            name="q" 
                            placeholder="Search IP/CIDR..." 
                            aria-label="Search"
-                           style="width: 200px;">
-                    <button class="btn btn-sm btn-outline-light" type="submit">
+                           style="width: 180px; font-size: 0.85rem;">
+                    <button class="btn btn-sm btn-outline-light py-0" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
@@ -87,10 +101,10 @@
                 <ul class="navbar-nav">
                     {% if user %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle py-1" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" style="font-size: 0.85rem;">
                             <i class="bi bi-person-circle"></i> {{ user.name }}
                             {% if user.role %}
-                            <span class="badge bg-light text-dark ms-1">{{ user.role|upper }}</span>
+                            <span class="badge bg-light text-dark ms-1" style="font-size: 0.65rem;">{{ user.role|upper }}</span>
                             {% endif %}
                         </a>
                         </a>
@@ -127,12 +141,12 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="container-fluid mt-4">
+    <main class="container-fluid mt-4 mb-4 pb-3" style="padding-top: 50px;">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="mt-5 py-3 bg-light text-center">
+    <footer class="fixed-bottom py-1 bg-light text-center border-top" style="font-size: 0.75rem;">
         <div class="container">
             <span class="text-muted">{{ app_title }} v{{ app_version }} | &copy; 2025</span>
         </div>

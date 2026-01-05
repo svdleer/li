@@ -1,13 +1,2 @@
 <?xml version="1.0" ?>
-<EVE_LI_Targets xmlns="http://eve.li/schema">
-  <Target type="PE">
-    <Hostname>NLSPL1PE01</Hostname>
-    <LoopbackIP>213.51.0.3</LoopbackIP>
-    <Networks/>
-  </Target>
-  <Target type="PE">
-    <Hostname>NLSPL1PE02</Hostname>
-    <LoopbackIP>213.51.0.4</LoopbackIP>
-    <Networks/>
-  </Target>
-</EVE_LI_Targets>
+<EVE_LI_Targets xmlns="http://eve.li/schema"/>

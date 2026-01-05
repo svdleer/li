@@ -1,0 +1,818 @@
+{% extends "base.html" %}
+
+{% block title %}Scheduled Tasks - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-calendar-event"></i> Scheduled Tasks</h2>
+            <p class="text-muted">View and manage automated background tasks</p>
+        </div>
+    </div>
+
+    <!-- Cache Warmer Task -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Cache Warmer</h5>
+                        <button class="btn btn-sm btn-light" onclick="runTask('cache_warmer')">
+                            <i class="bi bi-play-fill"></i> Run Now
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Schedule:</strong> <span id="cache_schedule">Loading...</span></p>
+                    <p><strong>Next Run:</strong> <span id="cache_next_run" class="badge bg-info">Loading...</span></p>
+                    <p><strong>Purpose:</strong> Pre-loads device and subnet data into cache for faster XML generation</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                    
+                    <div class="mt-3">
+                        <h6>Task Details:</h6>
+                        <ul class="small">
+                            <li>Fetches all devices from Netshot API</li>
+                            <li>Queries DHCP database for subnet information</li>
+                            <li>Updates MySQL cache database</li>
+                            <li>Reduces XML generation time from minutes to seconds</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary" id="cache_edit_btn" onclick="editSchedule('cache_warmer', '0 0 * * *')">
+                            <i class="bi bi-pencil"></i> Edit Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-database"></i> DHCP Cache Refresh</h5>
+                        <button class="btn btn-sm btn-light" onclick="runTask('dhcp_cache')">
+                            <i class="bi bi-play-fill"></i> Run Now
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Schedule:</strong> <span id="dhcp_schedule">Loading...</span></p>
+                    <p><strong>Next Run:</strong> <span id="dhcp_next_run" class="badge bg-info">Loading...</span></p>
+                    <p><strong>Purpose:</strong> Keeps DHCP subnet cache up-to-date</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                    
+                    <div class="mt-3">
+                        <h6>Task Details:</h6>
+                        <ul class="small">
+                            <li>Queries DHCP database for latest subnet info</li>
+                            <li>Updates subnet validation cache</li>
+                            <li>Ensures accurate IP range validation</li>
+                            <li>Runs more frequently for real-time accuracy</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary" id="dhcp_edit_btn" onclick="editSchedule('dhcp_cache', '*/30 * * * *')">
+                            <i class="bi bi-pencil"></i> Edit Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- XML Generation Task -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-xml"></i> XML Generation & Upload</h5>
+                        <button class="btn btn-sm btn-dark" onclick="runTask('xml_generation')">
+                            <i class="bi bi-play-fill"></i> Run Now
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p><strong>Schedule:</strong> <span id="xml_schedule">Not scheduled (disabled)</span></p>
+                    <p><strong>Next Run:</strong> <span id="xml_next_run" class="badge bg-secondary">Not scheduled</span></p>
+                    <p><strong>Purpose:</strong> Automated XML generation and upload for production</p>
+                    <p><strong>Status:</strong> <span id="xml_status" class="badge bg-secondary">Disabled</span></p>
+                    
+                    <div class="mt-3">
+                        <h6>Task Details:</h6>
+                        <ul class="small">
+                            <li>Generates EVE LI XML files (both CMTS and PE)</li>
+                            <li>Uses cached device and subnet data</li>
+                            <li>Validates XML against schema</li>
+                            <li>Uploads files to configured destination</li>
+                            <li>Can send email notifications</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary" id="xml_edit_btn">
+                            <i class="bi bi-plus-circle"></i> Add Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Execution History -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Task Executions</h5>
+                    <button class="btn btn-sm btn-light" onclick="loadTaskHistory()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Time</th>
+                                <th>Task</th>
+                                <th>Triggered By</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskHistoryBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    <i class="bi bi-hourglass-split"></i> Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="scheduleToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Schedule updated successfully!
+        </div>
+    </div>
+</div>
+
+<!-- Edit Schedule Modal -->
+<div class="modal fade" id="editScheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Task Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTaskId">
+                <input type="hidden" id="editCron">
+                
+                <!-- Quick Presets -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Quick Presets:</label>
+                    <div class="btn-group-vertical w-100" role="group">
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('*/5 * * * *')">
+                            <i class="bi bi-clock"></i> Every 5 minutes
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('*/15 * * * *')">
+                            <i class="bi bi-clock"></i> Every 15 minutes
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('*/30 * * * *')">
+                            <i class="bi bi-clock"></i> Every 30 minutes
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('0 * * * *')">
+                            <i class="bi bi-clock"></i> Every hour
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('0 0 * * *')">
+                            <i class="bi bi-moon"></i> Daily at midnight
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="applyPreset('0 9 * * 1-5')">
+                            <i class="bi bi-calendar-week"></i> Weekdays at 9:00 AM
+                        </button>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Custom Schedule -->
+                <div class="mb-3" id="customScheduleSection">
+                    <label class="form-label fw-bold">Or customize:</label>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Frequency</label>
+                            <select class="form-select" id="scheduleFrequency" onchange="updateScheduleFields()">
+                                <option value="minutes">Every X minutes</option>
+                                <option value="hourly">Hourly</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekdays">Weekdays</option>
+                                <option value="custom">Custom (Cron)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6" id="minutesField">
+                            <label class="form-label small">Every (minutes)</label>
+                            <select class="form-select" id="minuteInterval" onchange="updateScheduleFields()">
+                                <option value="5" selected>5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3" id="timeFields" style="display: none;">
+                        <div class="col-md-6">
+                            <label class="form-label small">Hour (24h format)</label>
+                            <select class="form-select" id="scheduleHour" onchange="updateScheduleFields()">
+                                <option value="0">00:00 (Midnight)</option>
+                                <option value="1">01:00</option>
+                                <option value="2">02:00</option>
+                                <option value="3">03:00</option>
+                                <option value="4">04:00</option>
+                                <option value="5">05:00</option>
+                                <option value="6">06:00</option>
+                                <option value="7">07:00</option>
+                                <option value="8">08:00</option>
+                                <option value="9" selected>09:00</option>
+                                <option value="10">10:00</option>
+                                <option value="11">11:00</option>
+                                <option value="12">12:00 (Noon)</option>
+                                <option value="13">13:00</option>
+                                <option value="14">14:00</option>
+                                <option value="15">15:00</option>
+                                <option value="16">16:00</option>
+                                <option value="17">17:00</option>
+                                <option value="18">18:00</option>
+                                <option value="19">19:00</option>
+                                <option value="20">20:00</option>
+                                <option value="21">21:00</option>
+                                <option value="22">22:00</option>
+                                <option value="23">23:00</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Minute</label>
+                            <select class="form-select" id="scheduleMinute" onchange="updateScheduleFields()">
+                                <option value="0" selected>:00</option>
+                                <option value="15">:15</option>
+                                <option value="30">:30</option>
+                                <option value="45">:45</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="customCronField" style="display: none;">
+                        <label for="customCronInput" class="form-label small">Cron Expression</label>
+                        <input type="text" class="form-control font-monospace" id="customCronInput" placeholder="* * * * *" 
+                               oninput="console.log('Custom cron input:', this.value); document.getElementById('editCron').value = this.value; var preview = document.getElementById('schedulePreview'); if(preview) { var humanized = humanizeCronExpression(this.value); console.log('Humanized:', humanized); preview.textContent = humanized; }">
+                        <small class="text-muted">Format: minute hour day month weekday</small>
+                    </div>
+                </div>
+                
+                <!-- Preview Alert - Last element in modal-body, always visible -->
+                <div class="alert alert-success mt-3">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Preview:</strong> <span id="schedulePreview" class="fw-bold">Every 5 minutes</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveSchedule()">
+                    <i class="bi bi-check-circle"></i> Save Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Task Scheduler JS - v2.1 - 2026-01-05
+console.log('Task scheduler script loaded - v2.1');
+
+// Load current job status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadJobStatus();
+    loadTaskHistory();
+});
+
+// Convert cron trigger to human-readable text
+function humanizeCron(triggerStr) {
+    // Parse APScheduler cron format: cron[hour='0', minute='0']
+    const hourMatch = triggerStr.match(/hour='([^']+)'/);
+    const minuteMatch = triggerStr.match(/minute='([^']+)'/);
+    const dayMatch = triggerStr.match(/day='([^']+)'/);
+    const dayOfWeekMatch = triggerStr.match(/day_of_week='([^']+)'/);
+    
+    // Handle minute-only schedules
+    if (minuteMatch && !hourMatch) {
+        const minute = minuteMatch[1];
+        if (minute === '*/30') {
+            return 'Every 30 minutes';
+        }
+        if (minute === '*/15') {
+            return 'Every 15 minutes';
+        }
+        if (minute === '*/5') {
+            return 'Every 5 minutes';
+        }
+        if (minute.startsWith('*/')) {
+            const interval = minute.substring(2);
+            return `Every ${interval} minutes`;
+        }
+    }
+    
+    // Handle hour and minute schedules
+    if (hourMatch && minuteMatch) {
+        const hour = hourMatch[1];
+        const minute = minuteMatch[1];
+        
+        if (hour === '0' && minute === '0') {
+            return 'Daily at midnight';
+        }
+        
+        if (dayOfWeekMatch && dayOfWeekMatch[1] === '1-5') {
+            return `Weekdays at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+        }
+        
+        if (hour === '*') {
+            if (minute.startsWith('*/')) {
+                const interval = minute.substring(2);
+                return `Every ${interval} minutes`;
+            }
+        }
+        
+        return `Daily at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+    
+    return triggerStr;
+}
+
+// Extract cron expression from trigger string
+function extractCronFromTrigger(triggerStr) {
+    // Parse APScheduler format back to cron
+    const minuteMatch = triggerStr.match(/minute='([^']+)'/);
+    const hourMatch = triggerStr.match(/hour='([^']+)'/);
+    const dayMatch = triggerStr.match(/day='([^']+)'/);
+    const monthMatch = triggerStr.match(/month='([^']+)'/);
+    const dayOfWeekMatch = triggerStr.match(/day_of_week='([^']+)'/);
+    
+    const minute = minuteMatch ? minuteMatch[1] : '*';
+    const hour = hourMatch ? hourMatch[1] : '*';
+    const day = dayMatch ? dayMatch[1] : '*';
+    const month = monthMatch ? monthMatch[1] : '*';
+    const dayOfWeek = dayOfWeekMatch ? dayOfWeekMatch[1] : '*';
+    
+    return `${minute} ${hour} ${day} ${month} ${dayOfWeek}`;
+}
+
+function loadJobStatus() {
+    fetch('/api/tasks/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let xmlJobFound = false;
+                
+                data.jobs.forEach(job => {
+                    const cronExpr = extractCronFromTrigger(job.trigger);
+                    const humanReadable = humanizeCron(job.trigger);
+                    
+                    if (job.id === 'cache_warmer') {
+                        document.getElementById('cache_schedule').textContent = humanReadable;
+                        document.getElementById('cache_next_run').textContent = job.next_run ? new Date(job.next_run).toLocaleString() : 'Not scheduled';
+                        const btn = document.getElementById('cache_edit_btn');
+                        btn.onclick = function() { editSchedule('cache_warmer', cronExpr); };
+                    } else if (job.id === 'dhcp_cache') {
+                        document.getElementById('dhcp_schedule').textContent = humanReadable;
+                        document.getElementById('dhcp_next_run').textContent = job.next_run ? new Date(job.next_run).toLocaleString() : 'Not scheduled';
+                        const btn = document.getElementById('dhcp_edit_btn');
+                        btn.onclick = function() { editSchedule('dhcp_cache', cronExpr); };
+                    } else if (job.id === 'xml_generation') {
+                        xmlJobFound = true;
+                        document.getElementById('xml_schedule').textContent = humanReadable;
+                        document.getElementById('xml_next_run').textContent = job.next_run ? new Date(job.next_run).toLocaleString() : 'Not scheduled';
+                        document.getElementById('xml_next_run').className = 'badge bg-info';
+                        document.getElementById('xml_status').textContent = 'Active';
+                        document.getElementById('xml_status').className = 'badge bg-success';
+                        const btn = document.getElementById('xml_edit_btn');
+                        btn.onclick = function() { editSchedule('xml_generation', cronExpr); };
+                        btn.innerHTML = '<i class="bi bi-pencil"></i> Edit Schedule';
+                    }
+                });
+                
+                // If XML job not found, set up default handler
+                if (!xmlJobFound) {
+                    const btn = document.getElementById('xml_edit_btn');
+                    btn.onclick = function() { editSchedule('xml_generation', '0 9 * * 1-5'); };
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading job status:', error);
+        });
+}
+
+function runTask(taskId) {
+    if (!confirm('Run this task now?')) {
+        return;
+    }
+    
+    fetch(`/api/tasks/${taskId}/run`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Task started successfully!\n\n' + data.message);
+            // Reload history after task execution
+            setTimeout(loadTaskHistory, 2000);
+        } else {
+            alert('Error: ' + (data.error || 'Failed to start task'));
+        }
+    })
+    .catch(error => {
+        alert('Error starting task: ' + error);
+    });
+}
+
+function loadTaskHistory() {
+    fetch('/api/tasks/history')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('taskHistoryBody');
+            
+            if (data.success && data.history.length > 0) {
+                tbody.innerHTML = data.history.map(item => {
+                    const statusBadge = item.status === 'success' 
+                        ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Success</span>'
+                        : '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Failed</span>';
+                    
+                    return `
+                        <tr>
+                            <td class="small">${new Date(item.timestamp).toLocaleString()}</td>
+                            <td><strong>${item.task_name}</strong></td>
+                            <td class="small"><i class="bi bi-person"></i> ${item.user}</td>
+                            <td>${statusBadge}</td>
+                            <td class="small text-muted">${item.details || '-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i> No task executions yet
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading task history:', error);
+            document.getElementById('taskHistoryBody').innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error loading history
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+function editSchedule(taskId, currentCron) {
+    // Get all required elements first
+    const editTaskIdEl = document.getElementById('editTaskId');
+    const editCronEl = document.getElementById('editCron');
+    const scheduleFrequencyEl = document.getElementById('scheduleFrequency');
+    
+    // Safety check - make sure modal elements exist
+    if (!editTaskIdEl || !editCronEl || !scheduleFrequencyEl) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    editTaskIdEl.value = taskId;
+    editCronEl.value = currentCron;
+    
+    // Parse cron and set appropriate frequency
+    const parts = currentCron.split(' ');
+    if (parts.length === 5) {
+        const [minute, hour, day, month, dayOfWeek] = parts;
+        
+        // Set values first before changing frequency
+        const hourEl = document.getElementById('scheduleHour');
+        const minuteEl = document.getElementById('scheduleMinute');
+        const intervalEl = document.getElementById('minuteInterval');
+        
+        if (hourEl) hourEl.value = hour !== '*' ? hour : '9';
+        if (minuteEl) minuteEl.value = minute !== '*' && !minute.startsWith('*/') ? minute : '0';
+        
+        // Detect frequency type
+        if (minute.startsWith('*/') && hour === '*') {
+            // Every X minutes
+            const intervalValue = minute.substring(2);
+            scheduleFrequencyEl.value = 'minutes';
+            if (intervalEl) {
+                intervalEl.value = intervalValue;
+                console.log('Setting interval to:', intervalValue);
+            }
+        } else if (minute === '0' && hour === '*') {
+            // Every hour
+            scheduleFrequencyEl.value = 'hourly';
+        } else if (dayOfWeek === '1-5' && day === '*') {
+            // Weekdays
+            scheduleFrequencyEl.value = 'weekdays';
+        } else if (day === '*' && month === '*' && dayOfWeek === '*') {
+            // Daily
+            scheduleFrequencyEl.value = 'daily';
+        } else {
+            // Custom
+            scheduleFrequencyEl.value = 'custom';
+        }
+    } else {
+        // Default to minutes
+        scheduleFrequencyEl.value = 'minutes';
+        const intervalEl = document.getElementById('minuteInterval');
+        if (intervalEl) intervalEl.value = '5';
+    }
+    
+    // Update fields after everything is set
+    updateScheduleFields();
+    
+    // Get or create modal instance
+    const modalEl = document.getElementById('editScheduleModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+    
+    // Wait for modal to be fully shown before updating fields again
+    modalEl.addEventListener('shown.bs.modal', function () {
+        console.log('Modal fully shown, attaching event handlers...');
+        
+        // Attach onchange handlers programmatically
+        const freqSelect = document.getElementById('scheduleFrequency');
+        const intervalSelect = document.getElementById('minuteInterval');
+        const hourSelect = document.getElementById('scheduleHour');
+        const minuteSelect = document.getElementById('scheduleMinute');
+        
+        if (freqSelect) {
+            freqSelect.onchange = updateScheduleFields;
+            console.log('Attached onchange to frequency dropdown');
+        }
+        if (intervalSelect) intervalSelect.onchange = updateScheduleFields;
+        if (hourSelect) hourSelect.onchange = updateScheduleFields;
+        if (minuteSelect) minuteSelect.onchange = updateScheduleFields;
+        
+        updateScheduleFields();
+    }, { once: true });
+    
+    modal.show();
+}
+
+function applyPreset(cron) {
+    // Get elements
+    const editCronEl = document.getElementById('editCron');
+    const scheduleFrequencyEl = document.getElementById('scheduleFrequency');
+    const schedulePreviewEl = document.getElementById('schedulePreview');
+    
+    // Safety check
+    if (!editCronEl || !scheduleFrequencyEl || !schedulePreviewEl) {
+        console.error('Preset elements not found');
+        return;
+    }
+    
+    // Set the cron value
+    editCronEl.value = cron;
+    
+    // Switch to custom mode to show the cron field
+    scheduleFrequencyEl.value = 'custom';
+    updateScheduleFields();
+    
+    // Update preview with friendly text
+    const presets = {
+        '*/5 * * * *': 'Every 5 minutes',
+        '*/15 * * * *': 'Every 15 minutes',
+        '*/30 * * * *': 'Every 30 minutes',
+        '0 * * * *': 'Every hour',
+        '0 0 * * *': 'Daily at midnight',
+        '0 9 * * 1-5': 'Weekdays at 9:00 AM'
+    };
+    
+    schedulePreviewEl.textContent = presets[cron] || cron;
+}
+
+function humanizeCronExpression(cron) {
+    const parts = cron.split(' ');
+    if (parts.length !== 5) return cron;
+    
+    const [minute, hour, day, month, dayOfWeek] = parts;
+    
+    // Every X minutes
+    if (minute.startsWith('*/') && hour === '*' && day === '*' && month === '*' && dayOfWeek === '*') {
+        const interval = minute.substring(2);
+        return `Every ${interval} minutes`;
+    }
+    
+    // Hourly
+    if (minute === '0' && hour === '*' && day === '*' && month === '*' && dayOfWeek === '*') {
+        return 'Every hour';
+    }
+    
+    // Daily at specific time
+    if (!minute.includes('*') && !hour.includes('*') && day === '*' && month === '*' && dayOfWeek === '*') {
+        return `Daily at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+    
+    // Weekdays at specific time
+    if (!minute.includes('*') && !hour.includes('*') && day === '*' && month === '*' && dayOfWeek === '1-5') {
+        return `Weekdays (Mon-Fri) at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+    
+    // Midnight
+    if (minute === '0' && hour === '0' && day === '*' && month === '*' && dayOfWeek === '*') {
+        return 'Daily at midnight';
+    }
+    
+    // Return cron as-is if no pattern matches
+    return cron;
+}
+
+function updateScheduleFields() {
+    const frequency = document.getElementById('scheduleFrequency').value;
+    const minutesField = document.getElementById('minutesField');
+    const timeFields = document.getElementById('timeFields');
+    const customCronField = document.getElementById('customCronField');
+    const cronEl = document.getElementById('editCron');
+    const customCronInput = document.getElementById('customCronInput');
+    
+    console.log('updateScheduleFields called, frequency:', frequency);
+    
+    // Safety check - require only essential fields
+    if (!minutesField || !timeFields || !customCronField || !cronEl) {
+        console.error('Missing essential fields:', {minutesField, timeFields, customCronField, cronEl});
+        return;
+    }
+    
+    // Hide all fields first
+    minutesField.style.display = 'none';
+    timeFields.style.display = 'none';
+    customCronField.style.display = 'none';
+    
+    let cron = '';
+    let preview = '';
+    
+    switch(frequency) {
+        case 'minutes':
+            minutesField.style.display = 'block';
+            const intervalEl = document.getElementById('minuteInterval');
+            const mins = (intervalEl && intervalEl.value) ? intervalEl.value : '5';
+            cron = `*/${mins} * * * *`;
+            preview = `Every ${mins} minutes`;
+            break;
+            
+        case 'hourly':
+            cron = '0 * * * *';
+            preview = 'Every hour';
+            break;
+            
+        case 'daily':
+            timeFields.style.display = 'block';
+            const hour = document.getElementById('scheduleHour').value;
+            const minute = document.getElementById('scheduleMinute').value;
+            cron = `${minute} ${hour} * * *`;
+            preview = `Daily at ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+            break;
+            
+        case 'weekdays':
+            timeFields.style.display = 'block';
+            const wdHour = document.getElementById('scheduleHour').value;
+            const wdMinute = document.getElementById('scheduleMinute').value;
+            cron = `${wdMinute} ${wdHour} * * 1-5`;
+            preview = `Weekdays at ${wdHour.padStart(2, '0')}:${wdMinute.padStart(2, '0')}`;
+            break;
+            
+        case 'custom':
+            console.log('Showing custom cron field');
+            customCronField.style.display = 'block';
+            cron = cronEl.value || '* * * * *';
+            if (customCronInput) {
+                customCronInput.value = cron;
+            }
+            // Try to parse and humanize custom cron
+            console.log('Calling humanizeCronExpression with:', cron);
+            preview = humanizeCronExpression(cron);
+            console.log('Humanized preview:', preview);
+            break;
+    }
+    
+    // Update hidden field
+    cronEl.value = cron;
+    
+    // Update preview - create it if it doesn't exist
+    setTimeout(function() {
+        let previewEl = document.getElementById('schedulePreview');
+        
+        if (!previewEl) {
+            // Element doesn't exist - create it
+            console.warn('Preview element missing, creating it...');
+            const modalBody = document.querySelector('#editScheduleModal .modal-body');
+            console.log('modalBody found:', modalBody);
+            if (modalBody) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success mt-3';
+                alertDiv.innerHTML = '<i class="bi bi-info-circle"></i> <strong>Preview:</strong> <span id="schedulePreview" class="fw-bold"></span>';
+                modalBody.appendChild(alertDiv);
+                console.log('Alert div created and appended');
+                previewEl = document.getElementById('schedulePreview');
+                console.log('Preview element after creation:', previewEl);
+            } else {
+                console.error('Modal body not found!');
+            }
+        }
+        
+        if (previewEl) {
+            previewEl.textContent = preview;
+            console.log('Updated preview to:', preview);
+        } else {
+            console.error('Could not create or find preview element');
+        }
+    }, 10);
+}
+
+function saveSchedule() {
+    // Make sure editCron is updated with latest values
+    updateScheduleFields();
+    
+    const taskId = document.getElementById('editTaskId').value;
+    const cron = document.getElementById('editCron').value;
+    
+    if (!cron) {
+        alert('Schedule is required');
+        return;
+    }
+    
+    fetch(`/api/tasks/${taskId}/schedule`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            cron: cron
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Hide modal
+            const modalEl = document.getElementById('editScheduleModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Show success toast
+            const toastEl = document.getElementById('scheduleToast');
+            document.getElementById('toastMessage').textContent = 'Schedule updated successfully! Reloading...';
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            
+            // Reload after a delay
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            alert('Error: ' + (data.error || 'Failed to update schedule'));
+        }
+    })
+    .catch(error => {
+        alert('Error updating schedule: ' + error);
+    });
+}
+</script>
+{% endblock %}

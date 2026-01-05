@@ -11,3 +11,13 @@ CREATE TABLE IF NOT EXISTS dhcp_validation_cache (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- APScheduler Jobs Table
+-- NOTE: This table is automatically created by APScheduler on first run
+-- Stores scheduled task configurations (cron schedules, next run times, etc.)
+-- No manual creation needed - just for documentation:
+--
+-- CREATE TABLE IF NOT EXISTS apscheduler_jobs (
+--     id VARCHAR(191) PRIMARY KEY,
+--     next_run_time DOUBLE,
+--     job_state BLOB NOT NULL
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -7,8 +7,13 @@ services:
     container_name: eve-li-web
     restart: unless-stopped
     
-    # Use host network mode to access SSH tunnels on Docker host
-    network_mode: "host"
+    # Port mapping for macOS (host mode doesn't work on Docker Desktop)
+    ports:
+      - "8080:8080"
+    
+    # Extra hosts to access local services
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     
     # Mount external data directories and config
     volumes:
@@ -22,13 +27,18 @@ services:
       - ./.flask_session:/app/.flask_session
     
     # All settings loaded from .env file (same as local development)
-    # No need to specify environment variables - they're in .env
+    # Override hosts to reach Mac host from container
     environment:
       - FLASK_HOST=0.0.0.0
-      - FLASK_PORT=5000
+      - FLASK_PORT=8080
+      # Point to Mac host for tunneled services
+      - NETSHOT_API_URL=https://host.docker.internal:8443/api
+      - MYSQL_HOST=host.docker.internal
+      # Set timezone
+      - TZ=Europe/Amsterdam
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3

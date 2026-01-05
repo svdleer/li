@@ -6,12 +6,16 @@ LABEL description="EVE LI XML Generator with Web Interface"
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies and configure timezone
+ENV TZ=Europe/Amsterdam
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
     curl \
+    tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching

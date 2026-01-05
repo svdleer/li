@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('static', filename='img/vodafoneziggo-logo.png') }}" 
+                             alt="VFZ Logo" 
+                             style="max-width: 200px;"
+                             class="mb-3">
+                        <h3>{{ app_title }}</h3>
+                        <p class="text-muted">Sign in to continue</p>
+                    </div>
+
+                    <!-- Local Login Form -->
+                    <form method="POST" action="{{ url_for('login_submit') }}" class="mb-4">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username or Email</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username" 
+                                   name="username" 
+                                   placeholder="your.username or email@vodafoneziggo.com"
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password" 
+                                   name="password" 
+                                   placeholder="Enter your password"
+                                   required>
+                        </div>
+                        <div class="mb-3 text-end">
+                            <a href="{{ url_for('forgot_password') }}" class="text-decoration-none small">
+                                Forgot password?
+                            </a>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                        </button>
+                    </form>
+
+                    <div class="text-center mb-3">
+                        <small class="text-muted">— OR —</small>
+                    </div>
+
+                    <!-- Office 365 Login -->
+                    <a href="{{ url_for('login_o365') }}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-microsoft"></i> Sign in with Office 365
+                    </a>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            Protected by VodafoneZiggo Security
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 {
   "value": [
     {
-      "id": 272089705,
+      "id": 272201830,
       "interfaceName": "management [A/1]",
       "ip4Addresses": [
         {
@@ -19,6 +19,6 @@
       "macAddress": "0000.0000.0000"
     }
   ],
-  "cached_at": "2026-01-04T12:06:18.115308",
+  "cached_at": "2026-01-05T12:48:14.965199",
   "key": "device_interfaces_11947"
 }

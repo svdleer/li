@@ -47,15 +47,19 @@
     </div>
 </div>
 
-<!-- Role Information -->
+<!-- Role Information - Collapsed by default -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Role Permissions</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
+        <div class="accordion" id="roleAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#rolePermissions">
+                        <small><i class="bi bi-info-circle"></i> View Role Permissions Reference</small>
+                    </button>
+                </h2>
+                <div id="rolePermissions" class="accordion-collapse collapse" data-bs-parent="#roleAccordion">
+                    <div class="accordion-body bg-light">
+                        <div class="row small">
                     <div class="col-md-4">
                         <h6><span class="badge bg-danger">ADMIN</span></h6>
                         <ul class="small">
@@ -91,7 +95,16 @@
                         </ul>
                     </div>
                 </div>
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <!-- Add User Button -->
+        <div class="text-end mb-3">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="bi bi-person-plus"></i> Add New User
+            </button>
         </div>
     </div>
 </div>
@@ -154,7 +167,6 @@
                                     </button>
                                 </td>
                                 <td>
-                                    {% if user.email != user_item.email %}
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-primary dropdown-toggle" 
                                                 type="button" 
@@ -162,6 +174,15 @@
                                             <i class="bi bi-three-dots-vertical"></i> Actions
                                         </button>
                                         <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="editUser('{{ user_item.email }}', '{{ user_item.name }}', '{{ user_item.username }}'); return false;">
+                                                <i class="bi bi-pencil"></i> Edit User
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-warning" href="#" onclick="resetPassword('{{ user_item.email }}', '{{ user_item.name }}'); return false;">
+                                                <i class="bi bi-key"></i> Reset Password
+                                            </a></li>
+                                            {% if user.email != user_item.email %}
+                                            <li><hr class="dropdown-divider"></li>
                                             <li><h6 class="dropdown-header">Change Role</h6></li>
                                             <li><a class="dropdown-item" href="#" onclick="changeRole('{{ user_item.email }}', 'admin')">
                                                 <i class="bi bi-shield-fill-check"></i> Set as Admin
@@ -172,17 +193,18 @@
                                             <li><a class="dropdown-item" href="#" onclick="changeRole('{{ user_item.email }}', 'viewer')">
                                                 <i class="bi bi-eye-fill"></i> Set as Viewer
                                             </a></li>
-                                            {% if demo_mode %}
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-muted" href="#" onclick="alert('Demo mode: User deletion disabled'); return false;">
-                                                <i class="bi bi-trash"></i> Delete User (Demo)
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteUser('{{ user_item.email }}', '{{ user_item.name }}'); return false;">
+                                                <i class="bi bi-trash"></i> Delete User
+                                            </a></li>
+                                            {% else %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-muted disabled" href="#" onclick="return false;">
+                                                <i class="bi bi-info-circle"></i> You cannot change your own role or delete yourself
                                             </a></li>
                                             {% endif %}
                                         </ul>
                                     </div>
-                                    {% else %}
-                                    <span class="badge bg-secondary">Current User</span>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -294,5 +316,235 @@ function changeRole(email, newRole) {
     
     return false;
 }
+
+function resetPassword(email, name) {
+    if (!confirm(`Reset password for "${name}" (${email})?\n\nA new password will be generated.`)) {
+        return false;
+    }
+    
+    fetch(`/api/users/${encodeURIComponent(email)}/reset-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const password = data.password;
+            const message = `Password reset successfully!\n\nNew Password: ${password}\n\nPlease save this password and share it with the user securely.`;
+            
+            // Show password in a prompt so user can copy it
+            prompt('New Password - Copy this:', password);
+            alert(message);
+        } else {
+            alert('Error: ' + (data.error || 'Failed to reset password'));
+        }
+    })
+    .catch(error => {
+        alert('Error resetting password: ' + error);
+    });
+    
+    return false;
+}
+
+function deleteUser(email, name) {
+    if (!confirm(`Are you sure you want to delete user "${name}" (${email})?\n\nThis action cannot be undone!`)) {
+        return false;
+    }
+    
+    fetch(`/api/users/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('User deleted successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to delete user'));
+        }
+    })
+    .catch(error => {
+        alert('Error deleting user: ' + error);
+    });
+    
+    return false;
+}
+
+function addUser() {
+    const email = document.getElementById('addEmail').value;
+    const username = document.getElementById('addUsername').value;
+    const name = document.getElementById('addName').value;
+    const role = document.getElementById('addRole').value;
+    
+    if (!email || !name || !role) {
+        alert('Email, name, and role are required');
+        return;
+    }
+    
+    fetch('/api/users', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: email,
+            username: username || null,
+            name: name,
+            role: role
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show generated password
+            const password = data.password;
+            const message = `User created successfully!\n\nGenerated Password: ${password}\n\nPlease save this password and share it with the user securely.\nThe user can change it after first login.`;
+            
+            // Close modal first
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            
+            // Show password in a prompt so user can copy it
+            prompt('User Created - Copy this password:', password);
+            alert(message);
+            
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to create user'));
+        }
+    })
+    .catch(error => {
+        alert('Error creating user: ' + error);
+    });
+}
+
+function editUser(email, name, username) {
+    document.getElementById('editOriginalEmail').value = email;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editUsername').value = username || '';
+    document.getElementById('editName').value = name;
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+
+function updateUser() {
+    const originalEmail = document.getElementById('editOriginalEmail').value;
+    const newEmail = document.getElementById('editEmail').value;
+    const username = document.getElementById('editUsername').value;
+    const name = document.getElementById('editName').value;
+    
+    if (!name || !newEmail) {
+        alert('Name and email are required');
+        return;
+    }
+    
+    fetch(`/api/users/${encodeURIComponent(originalEmail)}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: name,
+            email: newEmail,
+            username: username || null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('User updated successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to update user'));
+        }
+    })
+    .catch(error => {
+        alert('Error updating user: ' + error);
+    });
+}
 </script>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="addEmail" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="addEmail" required>
+                </div>
+                <div class="mb-3">
+                    <label for="addUsername" class="form-label">Username (optional)</label>
+                    <input type="text" class="form-control" id="addUsername" placeholder="Leave empty to use email">
+                    <small class="text-muted">Username can be used for login instead of email</small>
+                </div>
+                <div class="mb-3">
+                    <label for="addName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="addName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="addRole" class="form-label">Role</label>
+                    <select class="form-select" id="addRole" required>
+                        <option value="viewer">Viewer - Read-only access</option>
+                        <option value="operator">Operator - Can generate XML</option>
+                        <option value="admin">Admin - Full access</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> A secure password will be automatically generated for this user.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addUser()">
+                    <i class="bi bi-check-circle"></i> Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editOriginalEmail">
+                <div class="mb-3">
+                    <label for="editEmail" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="editEmail" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editUsername" class="form-label">Username (optional)</label>
+                    <input type="text" class="form-control" id="editUsername" placeholder="Leave empty to use email">
+                    <small class="text-muted">Username can be used for login instead of email</small>
+                </div>
+                <div class="mb-3">
+                    <label for="editName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="editName" required>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> To change role, use the Actions menu in the user list.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateUser()">
+                    <i class="bi bi-check-circle"></i> Update User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -27,12 +27,17 @@ from flask import Flask, render_template, redirect, url_for, session, request, j
 from flask_session import Session
 import msal
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.triggers.cron import CronTrigger
+import pytz
 
 # Import our modules
 from netshot_api import get_netshot_client
 from dhcp_integration import get_dhcp_integration
 from eve_li_xml_generator_v2 import EVEXMLGeneratorV2
 from audit_logger import get_audit_logger
+from rbac import get_rbac_manager, require_permission, check_permission, Role, Permission, ROLE_PERMISSIONS
 
 # Load environment variables
 load_dotenv()
@@ -53,6 +58,21 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger('eve_li_webapp')
+
+# Initialize APScheduler with MySQL persistence
+mysql_host = os.getenv('MYSQL_HOST', 'localhost')
+mysql_port = os.getenv('MYSQL_PORT', '3306')
+mysql_user = os.getenv('MYSQL_USER', 'root')
+mysql_password = os.getenv('MYSQL_PASSWORD', '')
+mysql_database = os.getenv('MYSQL_DATABASE', 'dhcp_validation_cache')
+
+mysql_url = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}'
+jobstores = {
+    'default': SQLAlchemyJobStore(url=mysql_url)
+}
+task_scheduler = BackgroundScheduler(jobstores=jobstores, timezone=pytz.UTC)
+task_scheduler.start()
+logger.info("APScheduler started with MySQL job store")
 
 # Azure AD / Office 365 Configuration
 AUTHORITY = os.getenv('AZURE_AUTHORITY', 'https://login.microsoftonline.com/common')
@@ -85,6 +105,173 @@ def _build_auth_url(authority=None, scopes=None, state=None):
     )
 
 
+# Scheduled task functions
+def run_cache_warmer():
+    """Run cache warmer task"""
+    try:
+        logger.info("Running cache warmer task...")
+        from cache_warmer import warm_device_validation_cache
+        warm_device_validation_cache()
+        logger.info("Cache warmer task completed")
+        
+        # Log to audit
+        audit = get_audit_logger()
+        audit.log(
+            username='system',
+            category=audit.CATEGORY_CACHE_REFRESH,
+            action='Cache Warmer completed successfully',
+            details='Refreshed device and subnet validation cache',
+            ip_address='127.0.0.1'
+        )
+    except Exception as e:
+        logger.error(f"Cache warmer task failed: {e}")
+        # Log failure to audit
+        audit = get_audit_logger()
+        audit.log(
+            username='system',
+            category=audit.CATEGORY_CACHE_REFRESH,
+            action='Cache Warmer failed',
+            details=str(e),
+            ip_address='127.0.0.1'
+        )
+
+
+def run_dhcp_cache():
+    """Run DHCP cache refresh task"""
+    try:
+        logger.info("Running DHCP cache refresh task...")
+        from dhcp_cache_warmer import warm_dhcp_cache
+        warm_dhcp_cache()
+        logger.info("DHCP cache refresh task completed")
+        
+        # Log to audit
+        audit = get_audit_logger()
+        audit.log(
+            username='system',
+            category=audit.CATEGORY_CACHE_REFRESH,
+            action='DHCP Cache Refresh completed successfully',
+            details='Refreshed DHCP subnet cache',
+            ip_address='127.0.0.1'
+        )
+    except Exception as e:
+        logger.error(f"DHCP cache refresh task failed: {e}")
+        # Log failure to audit
+        audit = get_audit_logger()
+        audit.log(
+            username='system',
+            category=audit.CATEGORY_CACHE_REFRESH,
+            action='DHCP Cache Refresh failed',
+            details=str(e),
+            ip_address='127.0.0.1'
+        )
+
+
+def run_xml_generation():
+    """Run XML generation and upload task"""
+    try:
+        logger.info("Running XML generation task...")
+        from eve_li_xml_generator_v2 import EVEXMLGeneratorV2
+        
+        generator = EVEXMLGeneratorV2()
+        
+        # Generate both CMTS and PE
+        cmts_result = generator.process_vfz_devices()
+        pe_result = generator.process_pe_devices()
+        
+        if cmts_result.get('success') and pe_result.get('success'):
+            logger.info("XML generation task completed successfully")
+            
+            # Log to audit
+            audit = get_audit_logger()
+            audit.log(
+                username='system',
+                category=audit.CATEGORY_XML_GENERATE,
+                action='XML Generation completed successfully',
+                details=f"Generated CMTS ({cmts_result.get('device_count')} devices) and PE ({pe_result.get('device_count')} devices) XML files",
+                ip_address='127.0.0.1'
+            )
+        else:
+            error_msg = f"CMTS: {cmts_result.get('message')}, PE: {pe_result.get('message')}"
+            logger.error(f"XML generation task failed: {error_msg}")
+            # Log failure to audit
+            audit = get_audit_logger()
+            audit.log(
+                username='system',
+                category=audit.CATEGORY_XML_GENERATE,
+                action='XML Generation failed',
+                details='Failed to generate XML files',
+                ip_address='127.0.0.1'
+            )
+    except Exception as e:
+        logger.error(f"XML generation task failed: {e}")
+        # Log failure to audit
+        audit = get_audit_logger()
+        audit.log(
+            username='system',
+            category=audit.CATEGORY_XML_GENERATE,
+            action='XML Generation failed',
+            details=str(e),
+            ip_address='127.0.0.1'
+        )
+
+
+# Initialize default scheduled jobs
+def init_scheduled_jobs():
+    """Initialize default scheduled jobs"""
+    try:
+        # Cache warmer: Daily at midnight
+        if not task_scheduler.get_job('cache_warmer'):
+            task_scheduler.add_job(
+                func=run_cache_warmer,
+                trigger=CronTrigger(hour=0, minute=0),
+                id='cache_warmer',
+                name='Cache Warmer',
+                replace_existing=True
+            )
+            logger.info("Scheduled: Cache Warmer (daily at midnight)")
+        
+        # DHCP cache: Every 30 minutes
+        if not task_scheduler.get_job('dhcp_cache'):
+            task_scheduler.add_job(
+                func=run_dhcp_cache,
+                trigger=CronTrigger(minute='*/30'),
+                id='dhcp_cache',
+                name='DHCP Cache Refresh',
+                replace_existing=True
+            )
+            logger.info("Scheduled: DHCP Cache Refresh (every 30 minutes)")
+        
+        # XML Generation: Configurable (default: disabled)
+        # Enable by setting in GUI or adding cron schedule
+        xml_enabled = os.getenv('XML_GENERATION_ENABLED', 'false').lower() == 'true'
+        xml_cron = os.getenv('XML_GENERATION_CRON', '0 9 * * 1-5')  # Default: 9 AM weekdays
+        
+        if xml_enabled and not task_scheduler.get_job('xml_generation'):
+            # Parse cron: minute hour day month day_of_week
+            parts = xml_cron.split()
+            if len(parts) == 5:
+                task_scheduler.add_job(
+                    func=run_xml_generation,
+                    trigger=CronTrigger(
+                        minute=parts[0],
+                        hour=parts[1],
+                        day=parts[2],
+                        month=parts[3],
+                        day_of_week=parts[4]
+                    ),
+                    id='xml_generation',
+                    name='XML Generation & Upload',
+                    replace_existing=True
+                )
+                logger.info(f"Scheduled: XML Generation ({xml_cron})")
+    except Exception as e:
+        logger.error(f"Failed to initialize scheduled jobs: {e}")
+
+
+# Initialize jobs on startup
+init_scheduled_jobs()
+
+
 def login_required(f):
     """Decorator to require authentication"""
     @wraps(f)
@@ -92,11 +279,11 @@ def login_required(f):
         # Bypass authentication in debug mode for local testing
         if app.debug:
             if not session.get("user"):
-                # Create a fake user session for local testing
+                # Create a fake user session for local testing (bypass admin)
                 session["user"] = {
-                    "name": "Local Dev User",
-                    "preferred_username": "dev@localhost",
-                    "email": "dev@localhost"
+                    "name": "System Administrator",
+                    "preferred_username": "admin@example.com",
+                    "email": "admin@example.com"
                 }
                 logger.info("Debug mode: Using local dev user session")
         
@@ -112,22 +299,178 @@ def login_required(f):
 
 @app.route("/login")
 def login():
-    """Initiate OAuth login flow or local dev login"""
-    # For local development, automatically log in
+    """Show login form"""
+    # For local development with debug, skip to form
     if app.debug:
+        return render_template("login_form.html", app_title=APP_TITLE)
+    
+    # Production: Show login form with O365 option
+    return render_template("login_form.html", app_title=APP_TITLE)
+
+
+@app.route("/login/submit", methods=["POST"])
+def login_submit():
+    """Handle login form submission"""
+    username = request.form.get("username")
+    password = request.form.get("password")
+    
+    if not username or not password:
+        flash("Username/email and password are required", "danger")
+        return redirect(url_for("login"))
+    
+    rbac = get_rbac_manager()
+    
+    # Try to find user by username or email
+    users = rbac.get_all_users()
+    user = next((u for u in users if u.get('username') == username or u['email'] == username), None)
+    
+    if user and rbac.verify_password(user['email'], password):
         session["user"] = {
-            "name": "Local Admin",
-            "preferred_username": "admin@localhost",
-            "email": "admin@localhost"
+            "name": user['name'],
+            "preferred_username": user.get('username') or user['email'],
+            "email": user['email']
         }
-        logger.info("Debug mode: Auto-login as local admin")
-        flash("Logged in as Local Admin (Debug Mode)", "info")
+        logger.info(f"User logged in: {user.get('username') or user['email']}")
+        flash(f"Welcome back, {user['name']}!", "success")
         return redirect(url_for("index"))
     
-    # Production: Use O365 authentication
+    flash("Invalid username/email or password", "danger")
+    return redirect(url_for("login"))
+
+
+@app.route("/login/o365")
+def login_o365():
+    """Initiate OAuth login flow"""
     session["state"] = str(uuid.uuid4())
     auth_url = _build_auth_url(scopes=SCOPE, state=session["state"])
-    return render_template("login.html", auth_url=auth_url, app_title=APP_TITLE)
+    return redirect(auth_url)
+
+
+@app.route("/forgot-password")
+def forgot_password():
+    """Show forgot password form"""
+    return render_template("forgot_password.html", app_title=APP_TITLE)
+
+
+@app.route("/forgot-password/submit", methods=["POST"])
+def forgot_password_submit():
+    """Handle forgot password form"""
+    email = request.form.get("email")
+    
+    if not email:
+        flash("Email is required", "danger")
+        return redirect(url_for("forgot_password"))
+    
+    rbac = get_rbac_manager()
+    
+    # Check if user exists
+    users = rbac.get_all_users()
+    user = next((u for u in users if u['email'] == email), None)
+    
+    if user:
+        # Generate reset token
+        token = rbac.create_reset_token(email)
+        
+        if token:
+            # Send email with reset link
+            from email_notifier import EmailNotifier
+            notifier = EmailNotifier()
+            
+            reset_url = url_for('reset_password', token=token, _external=True)
+            
+            html_body = f"""
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Password Reset Request</h2>
+                <p>Hello {user['name']},</p>
+                <p>We received a request to reset your password. Click the link below to reset it:</p>
+                <p style="margin: 30px 0;">
+                    <a href="{reset_url}" 
+                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
+                        Reset Password
+                    </a>
+                </p>
+                <p>This link will expire in 24 hours.</p>
+                <p>If you didn't request this, please ignore this email.</p>
+                <hr style="margin: 30px 0;">
+                <small style="color: #666;">EVE LI XML Generator - VodafoneZiggo</small>
+            </body>
+            </html>
+            """
+            
+            text_body = f"""
+            Password Reset Request
+            
+            Hello {user['name']},
+            
+            We received a request to reset your password.
+            
+            Reset link: {reset_url}
+            
+            This link will expire in 24 hours.
+            
+            If you didn't request this, please ignore this email.
+            """
+            
+            notifier.send_email(
+                subject="Password Reset Request - EVE LI XML Generator",
+                html_body=html_body,
+                text_body=text_body
+            )
+    
+    # Always show success message (security: don't reveal if email exists)
+    flash("If an account exists with that email, a password reset link has been sent.", "info")
+    return redirect(url_for("login"))
+
+
+@app.route("/reset-password/<token>")
+def reset_password(token):
+    """Show reset password form"""
+    rbac = get_rbac_manager()
+    email = rbac.verify_reset_token(token)
+    
+    if not email:
+        flash("Invalid or expired reset link", "danger")
+        return redirect(url_for("login"))
+    
+    return render_template("reset_password.html", token=token, app_title=APP_TITLE)
+
+
+@app.route("/reset-password/<token>/submit", methods=["POST"])
+def reset_password_submit(token):
+    """Handle reset password form"""
+    password = request.form.get("password")
+    confirm_password = request.form.get("confirm_password")
+    
+    if not password or not confirm_password:
+        flash("Both password fields are required", "danger")
+        return redirect(url_for("reset_password", token=token))
+    
+    if password != confirm_password:
+        flash("Passwords do not match", "danger")
+        return redirect(url_for("reset_password", token=token))
+    
+    if len(password) < 8:
+        flash("Password must be at least 8 characters", "danger")
+        return redirect(url_for("reset_password", token=token))
+    
+    rbac = get_rbac_manager()
+    email = rbac.verify_reset_token(token)
+    
+    if not email:
+        flash("Invalid or expired reset link", "danger")
+        return redirect(url_for("login"))
+    
+    # Set new password
+    if rbac.set_password(email, password):
+        rbac.clear_reset_token(email)
+        flash("Password reset successfully! You can now log in.", "success")
+        logger.info(f"Password reset completed for: {email}")
+    else:
+        flash("Failed to reset password. Please try again.", "danger")
+    
+    return redirect(url_for("login"))
 
 
 @app.route("/auth/callback")
@@ -222,16 +565,31 @@ def _save_cache(cache):
 
 def check_permission(permission):
     """
-    Check if current user has permission (stub for local dev)
-    In production, this would check actual user roles/permissions
+    Check if current user has permission
     """
-    # For local dev, admin has all permissions
-    if app.debug:
-        return True
+    if not session.get("user"):
+        return False
     
-    # Production: implement actual permission checking
-    # For now, return True for all permissions
-    return True
+    user_email = session['user'].get('email', session['user'].get('preferred_username'))
+    rbac = get_rbac_manager()
+    
+    # Map permission strings to Permission constants
+    permission_map = {
+        'view_dashboard': Permission.VIEW_DASHBOARD,
+        'view_devices': Permission.VIEW_DEVICES,
+        'view_xml_status': Permission.VIEW_XML_STATUS,
+        'view_validation': Permission.VIEW_VALIDATION,
+        'view_audit_log': Permission.VIEW_AUDIT_LOG,
+        'generate_xml': Permission.GENERATE_XML,
+        'upload_xml': Permission.UPLOAD_XML,
+        'run_validation': Permission.RUN_VALIDATION,
+        'modify_config': Permission.MODIFY_CONFIG,
+        'manage_users': Permission.MANAGE_USERS,
+        'search_subnets': Permission.SEARCH_SUBNETS
+    }
+    
+    perm = permission_map.get(permission, permission)
+    return rbac.has_permission(user_email, perm)
 
 
 # Make check_permission available in all templates
@@ -239,6 +597,33 @@ def check_permission(permission):
 def inject_permissions():
     """Inject permission checker into all templates"""
     return dict(check_permission=check_permission)
+
+
+@app.context_processor
+def inject_system_status():
+    """Inject system status into all templates"""
+    if not session.get('user'):
+        return dict(netshot_available=True, mysql_available=True)
+    
+    # Quick check - only when user is logged in
+    netshot_client = get_netshot_client()
+    netshot_available = netshot_client.test_connection()
+    
+    mysql_available = False
+    try:
+        from app_cache import AppCache
+        cache = AppCache()
+        mysql_available = cache.connect()
+        if mysql_available:
+            cache.disconnect()
+    except Exception:
+        pass
+    
+    return dict(
+        netshot_available=netshot_available,
+        mysql_available=mysql_available,
+        system_critical=(not netshot_available or not mysql_available)
+    )
 
 
 # ============================================================================
@@ -283,7 +668,7 @@ def audit_log_page():
         return render_template("audit_log.html",
                              user=session.get("user"),
                              app_title=APP_TITLE,
-                             logs=logs,
+                             events=logs,
                              total_logs=stats['total_events'],
                              stats=stats,
                              current_category=category,
@@ -294,7 +679,7 @@ def audit_log_page():
         return render_template("audit_log.html",
                              user=session.get("user"),
                              app_title=APP_TITLE,
-                             logs=[],
+                             events=[],
                              total_logs=0,
                              stats={'total_events': 0, 'by_category': {}, 'by_level': {}},
                              current_category='',
@@ -359,13 +744,244 @@ def api_audit_export():
 
 @app.route("/user-management")
 @login_required
+@require_permission(Permission.MANAGE_USERS)
 def user_management():
     """User management page"""
-    # TODO: Implement actual user management functionality
+    rbac = get_rbac_manager()
+    users = rbac.get_all_users()
+    
     return render_template("user_management.html",
                          user=session.get("user"),
                          app_title=APP_TITLE,
-                         users=[])
+                         users=users,
+                         all_roles=Role.ALL_ROLES,
+                         role_permissions=ROLE_PERMISSIONS)
+
+
+@app.route("/api/users", methods=["GET"])
+@login_required
+@require_permission(Permission.MANAGE_USERS)
+def api_get_users():
+    """API endpoint to get all users"""
+    try:
+        rbac = get_rbac_manager()
+        users = rbac.get_all_users()
+        return jsonify({'success': True, 'users': users})
+    except Exception as e:
+        logger.error(f"Error getting users: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/users/<email>", methods=["PUT", "PATCH"])
+@login_required
+@require_permission(Permission.MANAGE_USERS)
+def api_update_user(email):
+    """API endpoint to update user (role or name)"""
+    try:
+        rbac = get_rbac_manager()
+        data = request.json
+        
+        # Handle role update
+        if 'role' in data:
+            new_role = data.get('role')
+            if new_role not in Role.ALL_ROLES:
+                return jsonify({'success': False, 'error': 'Invalid role'}), 400
+            
+            if not rbac.update_user_role(email, new_role):
+                return jsonify({'success': False, 'error': 'Failed to update user'}), 500
+            
+            # Audit log
+            audit = get_audit_logger()
+            audit.log(
+                username=session['user'].get('preferred_username'),
+                category=audit.CATEGORY_CONFIG_CHANGE,
+                action=f'Updated user role: {email}',
+                details=f'New role: {new_role}',
+                ip_address=request.remote_addr
+            )
+            
+            return jsonify({'success': True, 'message': 'User updated successfully'})
+        
+        # Handle name and/or email and/or username update
+        if 'name' in data or 'email' in data or 'username' in data:
+            name = data.get('name')
+            new_email = data.get('email')
+            username = data.get('username')
+            
+            if not name:
+                return jsonify({'success': False, 'error': 'Name is required'}), 400
+            
+            # Build update query dynamically
+            conn = rbac._get_connection()
+            cursor = conn.cursor()
+            
+            if new_email and new_email != email:
+                # Update email, name, and username
+                cursor.execute(
+                    "UPDATE users SET email = %s, name = %s, username = %s WHERE email = %s",
+                    (new_email, name, username, email)
+                )
+                details = f'Changed email to: {new_email}, name to: {name}, username to: {username or "None"}'
+                
+                # Update session if editing yourself
+                current_user_email = session['user'].get('email', session['user'].get('preferred_username'))
+                if email == current_user_email:
+                    session['user']['email'] = new_email
+                    session['user']['preferred_username'] = username or new_email
+            else:
+                # Update name and username only
+                cursor.execute(
+                    "UPDATE users SET name = %s, username = %s WHERE email = %s",
+                    (name, username, email)
+                )
+                details = f'Changed name to: {name}, username to: {username or "None"}'
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            # Audit log
+            audit = get_audit_logger()
+            audit.log(
+                username=session['user'].get('preferred_username'),
+                category=audit.CATEGORY_CONFIG_CHANGE,
+                action=f'Updated user: {email}',
+                details=details,
+                ip_address=request.remote_addr
+            )
+            
+            return jsonify({'success': True, 'message': 'User updated successfully'})
+        
+        return jsonify({'success': False, 'error': 'No updates provided'}), 400
+        
+    except Exception as e:
+        logger.error(f"Error updating user: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/users", methods=["POST"])
+@login_required
+@require_permission(Permission.MANAGE_USERS)
+def api_add_user():
+    """API endpoint to add new user with auto-generated password"""
+    try:
+        import secrets
+        import string
+        
+        rbac = get_rbac_manager()
+        data = request.json
+        
+        email = data.get('email')
+        username = data.get('username')
+        name = data.get('name')
+        role = data.get('role')
+        
+        if not email or not name or not role:
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Generate secure random password
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(secrets.choice(alphabet) for i in range(16))
+        
+        # Add user with username
+        conn = rbac._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO users (email, username, name, role, password_hash) VALUES (%s, %s, %s, %s, %s)",
+            (email, username, name, role, rbac.hash_password(password))
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category=audit.CATEGORY_CONFIG_CHANGE,
+            action=f'Added new user: {email}',
+            details=f'Role: {role}',
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True, 
+            'message': 'User added successfully',
+            'password': password  # Return generated password
+        })
+    except Exception as e:
+        logger.error(f"Error adding user: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/users/<email>/reset-password", methods=["POST"])
+@login_required
+@require_permission(Permission.MANAGE_USERS)
+def api_reset_user_password(email):
+    """API endpoint to reset user password"""
+    try:
+        import secrets
+        import string
+        
+        rbac = get_rbac_manager()
+        
+        # Generate secure random password
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(secrets.choice(alphabet) for i in range(16))
+        
+        if not rbac.set_password(email, password):
+            return jsonify({'success': False, 'error': 'Failed to reset password'}), 500
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category=audit.CATEGORY_CONFIG_CHANGE,
+            action=f'Reset password for user: {email}',
+            details='',
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Password reset successfully',
+            'password': password  # Return generated password
+        })
+    except Exception as e:
+        logger.error(f"Error resetting password: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/users/<email>", methods=["DELETE"])
+@login_required
+@require_permission(Permission.MANAGE_USERS)
+def api_delete_user(email):
+    """API endpoint to delete user"""
+    try:
+        rbac = get_rbac_manager()
+        
+        # Prevent deleting yourself
+        current_user_email = session['user'].get('email', session['user'].get('preferred_username'))
+        if email == current_user_email:
+            return jsonify({'success': False, 'error': 'Cannot delete yourself'}), 400
+        
+        if not rbac.delete_user(email):
+            return jsonify({'success': False, 'error': 'Failed to delete user (may be protected)'}), 400
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category=audit.CATEGORY_CONFIG_CHANGE,
+            action=f'Deleted user: {email}',
+            details='',
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({'success': True, 'message': 'User deleted successfully'})
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route("/search")
@@ -435,8 +1051,32 @@ def dashboard():
         # Get recent XML files
         output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
         recent_files = []
+        last_xml_update = 'Never'
+        last_generation_status = 'pending'
+        last_upload_status = 'pending'
+        
         if output_dir.exists():
             xml_files = sorted(output_dir.glob('*.xml.gz'), key=lambda p: p.stat().st_mtime, reverse=True)
+            if xml_files:
+                # Get most recent file timestamp
+                last_xml_update = datetime.fromtimestamp(xml_files[0].stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+                last_generation_status = 'success'  # If files exist, generation was successful
+                
+                # Check upload status from response files
+                response_files = sorted(output_dir.glob('*.response.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+                if response_files:
+                    try:
+                        import json
+                        with open(response_files[0], 'r') as f:
+                            response_data = json.load(f)
+                            # Check if upload was successful (customize based on your response format)
+                            if response_data.get('success') or response_data.get('status') == 'success':
+                                last_upload_status = 'success'
+                            else:
+                                last_upload_status = 'failed'
+                    except Exception:
+                        last_upload_status = 'pending'
+            
             for xml_file in xml_files[:10]:
                 stat = xml_file.stat()
                 recent_files.append({
@@ -453,7 +1093,10 @@ def dashboard():
             'public_subnets': total_public_subnets,
             'devices_with_dhcp': devices_with_dhcp,
             'devices_with_loopback': devices_with_loopback,
-            'recent_files': recent_files
+            'recent_files': recent_files,
+            'last_xml_update': last_xml_update,
+            'last_generation_status': last_generation_status,
+            'last_upload_status': last_upload_status
         }
         
         return render_template("dashboard.html",
@@ -633,26 +1276,38 @@ def devices():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from app_cache import AppCache
-                cache = AppCache()
-                if cache.connect():
-                    # Fetch all device validations in one query instead of 460+ individual queries
-                    with cache.connection.cursor() as cursor:
+                from dhcp_database import DHCPDatabase
+                dhcp_db = DHCPDatabase()
+                logger.info(f"Attempting DHCP database connection to {dhcp_db.host}:{dhcp_db.port}/{dhcp_db.database}")
+                if dhcp_db.connect():
+                    # Fetch all device validations from dhcp_validation_cache table in one query
+                    with dhcp_db.connection.cursor() as cursor:
                         cursor.execute(
-                            "SELECT cache_key, data FROM cache WHERE cache_type = 'device_validation' AND expires_at > NOW()"
+                            "SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                         )
-                        validation_cache = {row['cache_key']: json.loads(row['data']) if isinstance(row['data'], str) else row['data'] 
-                                          for row in cursor.fetchall()}
+                        validation_rows = cursor.fetchall()
+                        validation_cache = {}
+                        for row in validation_rows:
+                            validation_cache[row['device_name']] = {
+                                'dhcp_hostname': row['dhcp_hostname'],
+                                'has_dhcp': bool(row['has_dhcp']),
+                                'dhcp_scopes_count': row['dhcp_scopes_count'],
+                                'missing_in_dhcp': json.loads(row['missing_in_dhcp']) if row['missing_in_dhcp'] else [],
+                                'matched': json.loads(row['matched']) if row['matched'] else []
+                            }
+                    
+                    logger.info(f"Loaded DHCP validation for {len(validation_cache)} devices from cache")
                     
                     # Apply cached validation data to devices
                     from netshot_diagnostic import is_public_ipv4, is_public_ipv6
+                    devices_with_dhcp = 0
                     for device in cmts_devices:
                         device_name = device.get('name')
-                        cache_key = f'device_validation:{device_name}'
-                        cached_data = validation_cache.get(cache_key)
+                        cached_data = validation_cache.get(device_name)
                         if cached_data and isinstance(cached_data, dict):
                             device['dhcp_validation'] = cached_data
                             device['dhcp_hostname'] = cached_data.get('dhcp_hostname')
+                            devices_with_dhcp += 1
                         
                         # Calculate public subnet count (excluding primary subnet)
                         subnets = device.get('subnets', [])
@@ -662,13 +1317,14 @@ def devices():
                         public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
                         device['public_subnet_count'] = len(public_ipv4) + len(public_ipv6)
                     
-                    cache.disconnect()
+                    logger.info(f"Applied DHCP validation to {devices_with_dhcp}/{len(cmts_devices)} devices")
+                    dhcp_db.disconnect()
                 else:
-                    flash("⚠ MySQL cache is not available. DHCP validation data will not be displayed.", "warning")
-                    logger.error("MySQL cache connection failed")
+                    flash("⚠ DHCP database is not available. DHCP validation data will not be displayed.", "warning")
+                    logger.error("DHCP database connection failed")
             except Exception as cache_err:
-                flash(f"⚠ MySQL cache connection error. DHCP validation unavailable.", "warning")
-                logger.error(f"DHCP cache lookup failed: {cache_err}")
+                flash(f"⚠ DHCP database connection error. DHCP validation unavailable.", "warning")
+                logger.error(f"DHCP cache lookup failed: {cache_err}", exc_info=True)
         
         if device_type in ['all', 'pe']:
             all_pe = netshot_client.get_pe_devices(force_refresh)
@@ -736,23 +1392,30 @@ def devices_data():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from app_cache import AppCache
-                cache = AppCache()
-                if cache.connect():
-                    # Fetch all device validations in one query
-                    with cache.connection.cursor() as cursor:
+                from dhcp_database import DHCPDatabase
+                dhcp_db = DHCPDatabase()
+                if dhcp_db.connect():
+                    # Fetch all device validations from dhcp_validation_cache table in one query
+                    with dhcp_db.connection.cursor() as cursor:
                         cursor.execute(
-                            "SELECT cache_key, data FROM cache WHERE cache_type = 'device_validation' AND expires_at > NOW()"
+                            "SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                         )
-                        validation_cache = {row['cache_key']: json.loads(row['data']) if isinstance(row['data'], str) else row['data'] 
-                                          for row in cursor.fetchall()}
+                        validation_rows = cursor.fetchall()
+                        validation_cache = {}
+                        for row in validation_rows:
+                            validation_cache[row['device_name']] = {
+                                'dhcp_hostname': row['dhcp_hostname'],
+                                'has_dhcp': bool(row['has_dhcp']),
+                                'dhcp_scopes_count': row['dhcp_scopes_count'],
+                                'missing_in_dhcp': json.loads(row['missing_in_dhcp']) if row['missing_in_dhcp'] else [],
+                                'matched': json.loads(row['matched']) if row['matched'] else []
+                            }
                     
                     # Apply cached validation data to devices
                     from netshot_diagnostic import is_public_ipv4, is_public_ipv6
                     for device in cmts_devices:
                         device_name = device.get('name')
-                        cache_key = f'device_validation:{device_name}'
-                        cached_data = validation_cache.get(cache_key)
+                        cached_data = validation_cache.get(device_name)
                         if cached_data and isinstance(cached_data, dict):
                             device['dhcp_validation'] = cached_data
                             device['dhcp_hostname'] = cached_data.get('dhcp_hostname')
@@ -915,6 +1578,242 @@ def api_view_xml(filename):
     except Exception as e:
         logger.error(f"Error viewing XML: {e}")
         return f"Error reading file: {str(e)}", 500
+
+
+@app.route("/scheduled-tasks")
+@login_required
+@require_permission(Permission.VIEW_VALIDATION)
+def scheduled_tasks():
+    """Scheduled tasks page"""
+    # Get job info from scheduler
+    jobs_info = []
+    for job in task_scheduler.get_jobs():
+        trigger_str = str(job.trigger)
+        jobs_info.append({
+            'id': job.id,
+            'name': job.name,
+            'next_run': job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job.next_run_time else 'N/A',
+            'trigger': trigger_str
+        })
+    
+    return render_template("scheduled_tasks.html",
+                         user=session.get("user"),
+                         app_title=APP_TITLE,
+                         app_version=APP_VERSION,
+                         jobs=jobs_info)
+
+
+@app.route("/api/tasks/status", methods=["GET"])
+@login_required
+def api_tasks_status():
+    """Get current status of all scheduled tasks"""
+    try:
+        jobs_status = []
+        for job in task_scheduler.get_jobs():
+            jobs_status.append({
+                'id': job.id,
+                'name': job.name,
+                'next_run': job.next_run_time.isoformat() if job.next_run_time else None,
+                'trigger': str(job.trigger)
+            })
+        
+        return jsonify({
+            'success': True,
+            'jobs': jobs_status
+        })
+    except Exception as e:
+        logger.error(f"Error getting task status: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/tasks/history", methods=["GET"])
+@login_required
+def api_tasks_history():
+    """Get recent task execution history from audit log"""
+    try:
+        audit = get_audit_logger()
+        rbac = get_rbac_manager()
+        
+        # Get recent task-related audit logs
+        logs = audit.get_logs(
+            category='xml_generate',
+            limit=10,
+            offset=0
+        )
+        
+        # Also get cache refresh logs
+        cache_logs = audit.get_logs(
+            category='cache_refresh',
+            limit=10,
+            offset=0
+        )
+        
+        # Combine and sort by timestamp
+        all_logs = logs + cache_logs
+        all_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        all_logs = all_logs[:10]  # Keep only last 10
+        
+        # Get all users for name lookup
+        users = rbac.get_all_users()
+        user_map = {u['email']: u['name'] for u in users}
+        user_map['system'] = 'System (Scheduled)'
+        
+        # Format for display
+        history = []
+        for log in all_logs:
+            # Determine status from action text
+            action = log.get('action', '')
+            status = 'success'
+            if 'failed' in action.lower() or 'error' in action.lower():
+                status = 'failed'
+            
+            username = log.get('username', 'system')
+            display_name = user_map.get(username, username)
+            
+            history.append({
+                'timestamp': log.get('timestamp'),
+                'task_name': log.get('action', 'Unknown Task'),
+                'user': display_name,
+                'status': status,
+                'details': log.get('details', '')
+            })
+        
+        return jsonify({
+            'success': True,
+            'history': history
+        })
+    except Exception as e:
+        logger.error(f"Error getting task history: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/tasks/<task_id>/run", methods=["POST"])
+@login_required
+@require_permission(Permission.GENERATE_XML)
+def api_run_task(task_id):
+    """API endpoint to run a scheduled task manually"""
+    try:
+        task_functions = {
+            'cache_warmer': run_cache_warmer,
+            'dhcp_cache': run_dhcp_cache,
+            'xml_generation': run_xml_generation
+        }
+        
+        if task_id not in task_functions:
+            return jsonify({'success': False, 'error': 'Invalid task ID'}), 400
+        
+        # Get the job to check if it exists
+        job = task_scheduler.get_job(task_id)
+        if not job:
+            return jsonify({'success': False, 'error': 'Task not found in scheduler'}), 404
+        
+        # Run the task immediately
+        task_functions[task_id]()
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category=audit.CATEGORY_XML_GENERATE,
+            action=f'Manually triggered task: {task_id}',
+            details=f'Job: {job.name}',
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'Task "{job.name}" executed successfully'
+        })
+    except Exception as e:
+        logger.error(f"Error running task: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/api/tasks/<task_id>/schedule", methods=["POST"])
+@login_required
+@require_permission(Permission.MODIFY_CONFIG)
+def api_update_schedule(task_id):
+    """API endpoint to update task schedule"""
+    try:
+        data = request.json
+        cron = data.get('cron')
+        
+        if not cron:
+            return jsonify({'success': False, 'error': 'Cron expression is required'}), 400
+        
+        # Validate cron format (basic check)
+        parts = cron.split()
+        if len(parts) != 5:
+            return jsonify({'success': False, 'error': 'Invalid cron format. Expected: minute hour day month weekday'}), 400
+        
+        # Get the current job (may not exist for XML generation)
+        job = task_scheduler.get_job(task_id)
+        
+        # Parse cron expression
+        minute, hour, day, month, day_of_week = parts
+        
+        # Map task IDs to functions
+        task_functions = {
+            'cache_warmer': run_cache_warmer,
+            'dhcp_cache': run_dhcp_cache,
+            'xml_generation': run_xml_generation
+        }
+        
+        if task_id not in task_functions:
+            return jsonify({'success': False, 'error': 'Invalid task ID'}), 400
+        
+        task_names = {
+            'cache_warmer': 'Cache Warmer',
+            'dhcp_cache': 'DHCP Cache Refresh',
+            'xml_generation': 'XML Generation & Upload'
+        }
+        
+        if job:
+            # Update existing job
+            task_scheduler.reschedule_job(
+                task_id,
+                trigger=CronTrigger(
+                    minute=minute,
+                    hour=hour,
+                    day=day,
+                    month=month,
+                    day_of_week=day_of_week
+                )
+            )
+        else:
+            # Add new job
+            task_scheduler.add_job(
+                func=task_functions[task_id],
+                trigger=CronTrigger(
+                    minute=minute,
+                    hour=hour,
+                    day=day,
+                    month=month,
+                    day_of_week=day_of_week
+                ),
+                id=task_id,
+                name=task_names[task_id],
+                replace_existing=True
+            )
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category=audit.CATEGORY_CONFIG_CHANGE,
+            action=f'Updated schedule for task: {task_id}',
+            details=f'New cron: {cron}',
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Schedule updated successfully',
+            'cron': cron
+        })
+    except Exception as e:
+        logger.error(f"Error updating schedule: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route("/health")
@@ -1205,4 +2104,9 @@ if __name__ == "__main__":
     logger.info(f"Debug mode: {debug}")
     logger.info(f"Listening on {host}:{port}")
     
-    app.run(host=host, port=port, debug=debug)
+    try:
+        app.run(host=host, port=port, debug=debug)
+    finally:
+        if task_scheduler.running:
+            task_scheduler.shutdown()
+            logger.info("Scheduler stopped")
