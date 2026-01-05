@@ -9,12 +9,17 @@
 # Configuration
 # ============================================================================
 JUMP_SERVER="svdleer@script3a.oss.local"
-TARGET_SERVER="appdb-sh.oss.local"
+TARGET_SERVER="localhost"
+TARGET_PORT="2222"
 SSH_KEY="${HOME}/.ssh/id_rsa"
+CONTROL_PATH="${HOME}/.ssh/cm-%r@%h:%p"
 REMOTE_DEPLOY_DIR="/opt/eve-li-web"
-REMOTE_USER="root"
-GIT_REPO="https://github.com/svdleer/li.git"  # Your git repository
+REMOTE_USER="svdleer"
+GIT_REPO="https://github.com/svdleer/li.git"
 GIT_BRANCH="main"
+
+# Proxy settings for remote server
+PROXY_EXPORTS='export http_proxy="http://proxy.ext.oss.local:8080" && export https_proxy="http://proxy.ext.oss.local:8080"'
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,9 +48,20 @@ echo_success() {
     echo -e "${BLUE}[SUCCESS]${NC} $1"
 }
 
-# SSH via jump server
+# Check if ControlMaster is active
+check_tunnel() {
+    ssh -O check -S "$CONTROL_PATH" "$JUMP_SERVER" 2>/dev/null
+    return $?
+}
+
+# SSH via tunnel to localhost:2222
 ssh_remote() {
-    ssh -J "$JUMP_SERVER" -i "$SSH_KEY" "${REMOTE_USER}@${TARGET_SERVER}" "$@"
+    if ! check_tunnel; then
+        echo_error "SSH tunnel not active! Start it with: ./ssh-tunnel.sh start"
+        exit 1
+    fi
+    # Connect to localhost:2222 which tunnels to appdb-sh.oss.local:22
+    ssh -p "$TARGET_PORT" "${REMOTE_USER}@${TARGET_SERVER}" "$@"
 }
 
 case "$1" in
@@ -77,15 +93,9 @@ case "$1" in
     echo_info "Deploying latest code to ${TARGET_SERVER}..."
     echo "================================"
     
-    # Check if directory exists
-    ssh_remote "test -d ${REMOTE_DEPLOY_DIR}/.git" || {
-        echo_error "Repository not initialized! Run './deploy-git.sh init' first"
-        exit 1
-    }
-    
     # Pull latest code
     echo_info "Pulling latest code from git..."
-    ssh_remote "cd ${REMOTE_DEPLOY_DIR} && git fetch origin && git reset --hard origin/${GIT_BRANCH}" || {
+    ssh_remote "export http_proxy='http://proxy.ext.oss.local:8080' && export https_proxy='http://proxy.ext.oss.local:8080' && cd ${REMOTE_DEPLOY_DIR} && git pull origin ${GIT_BRANCH}" || {
         echo_error "Failed to pull latest code!"
         exit 1
     }
@@ -100,7 +110,7 @@ case "$1" in
     
     # Build new image
     echo_info "Building Docker image..."
-    ssh_remote "cd ${REMOTE_DEPLOY_DIR} && docker-compose build" || {
+    ssh_remote "export http_proxy='http://proxy.ext.oss.local:8080' && export https_proxy='http://proxy.ext.oss.local:8080' && cd ${REMOTE_DEPLOY_DIR} && docker-compose build --build-arg http_proxy='http://proxy.ext.oss.local:8080' --build-arg https_proxy='http://proxy.ext.oss.local:8080'" || {
         echo_error "Docker build failed!"
         exit 1
     }
