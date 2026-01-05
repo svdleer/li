@@ -1258,7 +1258,7 @@ def refresh_device(device_name):
     try:
         from cache_manager import CacheManager
         from app_cache import AppCache
-        from dhcp_integration import DHCPIntegration as DHCPDatabase
+        from dhcp_database import DHCPDatabase
         import hashlib
         
         # Get the device ID first (we need it for cache keys)
@@ -1394,7 +1394,7 @@ def devices():
         
         if device_type in ['all', 'cmts']:
             import concurrent.futures
-            from dhcp_integration import DHCPIntegration as DHCPDatabase
+            from dhcp_database import DHCPDatabase
             
             # Fetch CMTS devices from Netshot
             all_cmts = netshot_client.get_cmts_devices(force_refresh)
@@ -1408,7 +1408,7 @@ def devices():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from dhcp_integration import DHCPIntegration as DHCPDatabase
+                from dhcp_database import DHCPDatabase
                 dhcp_db = DHCPDatabase()
                 logger.info(f"Attempting DHCP database connection to {dhcp_db.db_config['host']}:{dhcp_db.db_config['port']}/{dhcp_db.db_config['database']}")
                 if dhcp_db.test_connection():
@@ -1499,7 +1499,7 @@ def devices_data():
         
         if device_type in ['all', 'cmts']:
             import concurrent.futures
-            from dhcp_integration import DHCPIntegration as DHCPDatabase
+            from dhcp_database import DHCPDatabase
             
             # Start fetching CMTS devices from Netshot (this may use cache or hit API)
             all_cmts_future = concurrent.futures.ThreadPoolExecutor(max_workers=1).submit(
@@ -1526,7 +1526,7 @@ def devices_data():
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
-                from dhcp_integration import DHCPIntegration as DHCPDatabase
+                from dhcp_database import DHCPDatabase
                 dhcp_db = DHCPDatabase()
                 if dhcp_db.test_connection():
                     # Fetch all device validations from dhcp_validation_cache table in one query

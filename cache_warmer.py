@@ -16,7 +16,7 @@ import sys
 import logging
 from datetime import datetime
 from netshot_api import NetshotAPI
-from dhcp_integration import DHCPIntegration as DHCPDatabase
+from dhcp_database import DHCPDatabase
 from app_cache import AppCache
 
 # Configure logging

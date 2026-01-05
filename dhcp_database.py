@@ -6,10 +6,6 @@ import os
 import re
 import logging
 import pymysql
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +27,23 @@ class DHCPDatabase:
     """Interface to DHCP MariaDB database"""
     
     def __init__(self):
-        self.host = os.getenv('DB_HOST', 'localhost')
-        self.port = int(os.getenv('DB_PORT', '3306'))
-        self.database = os.getenv('DB_DATABASE', 'access')
-        self.user = os.getenv('DB_USER', 'access')
-        self.password = os.getenv('DB_PASSWORD', '')
+        # Load settings from ConfigManager
+        try:
+            from config_manager import get_config_manager
+            config_mgr = get_config_manager()
+            self.host = config_mgr.get_setting('mysql_host') or os.getenv('MYSQL_HOST', 'localhost')
+            self.port = int(config_mgr.get_setting('mysql_port') or os.getenv('MYSQL_PORT', '3306'))
+            self.database = config_mgr.get_setting('mysql_database') or os.getenv('MYSQL_DATABASE', 'access')
+            self.user = config_mgr.get_setting('mysql_user') or os.getenv('MYSQL_USER', 'access')
+            self.password = config_mgr.get_setting('mysql_password') or os.getenv('MYSQL_PASSWORD', '')
+        except Exception as e:
+            logger.warning(f"Could not load from ConfigManager, using environment: {e}")
+            self.host = os.getenv('MYSQL_HOST', 'localhost')
+            self.port = int(os.getenv('MYSQL_PORT', '3306'))
+            self.database = os.getenv('MYSQL_DATABASE', 'access')
+            self.user = os.getenv('MYSQL_USER', 'access')
+            self.password = os.getenv('MYSQL_PASSWORD', '')
+        
         self.connection = None
         
     def connect(self):

@@ -14,7 +14,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from netshot_api import NetshotAPI
-from dhcp_integration import DHCPIntegration as DHCPDatabase
+from dhcp_database import DHCPDatabase
 
 # Setup logging
 logging.basicConfig(
