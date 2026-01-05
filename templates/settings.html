@@ -50,10 +50,35 @@
                         <small class="form-text text-muted">Database with DHCP scopes (default: access)</small>
                     </div>
                 </div>
+
+                <hr class="my-4">
                 
+                <h5 class="mb-3">Cache Database Connection</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Cache Database</label>
+                        <label class="form-label">Host</label>
+                        <input type="text" class="form-control" name="cache_host" 
+                               value="{{ settings.cache_host.value if settings.cache_host else '' }}">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Port</label>
+                        <input type="text" class="form-control" name="cache_port" 
+                               value="{{ settings.cache_port.value if settings.cache_port else '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="cache_user" 
+                               value="{{ settings.cache_user.value if settings.cache_user else '' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="cache_password" 
+                               value="{{ settings.cache_password.value if settings.cache_password else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Database Name</label>
                         <input type="text" class="form-control" name="cache_database" 
                                value="{{ settings.cache_database.value if settings.cache_database else '' }}">
                         <small class="form-text text-muted">Database for cache tables (default: li_xml)</small>

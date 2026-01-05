@@ -27,17 +27,21 @@ class DHCPDatabase:
     """Interface to DHCP MariaDB database"""
     
     def __init__(self):
-        # Load settings from ConfigManager for the ACCESS database (real DHCP data)
+        # Load settings from ConfigManager
         try:
             from config_manager import get_config_manager
             config_mgr = get_config_manager()
-            # Use 'access' database for DHCP scope data
+            # DHCP database connection (for scope data)
             self.host = config_mgr.get_setting('mysql_host') or os.getenv('MYSQL_HOST', 'localhost')
             self.port = int(config_mgr.get_setting('mysql_port') or os.getenv('MYSQL_PORT', '3306'))
             self.database = config_mgr.get_setting('mysql_database') or 'access'
             self.user = config_mgr.get_setting('mysql_user') or os.getenv('MYSQL_USER', 'access')
             self.password = config_mgr.get_setting('mysql_password') or os.getenv('MYSQL_PASSWORD', '')
-            # Separate database for cache tables
+            # Separate cache database connection (for cache tables)
+            self.cache_host = config_mgr.get_setting('cache_host') or os.getenv('CACHE_HOST', 'localhost')
+            self.cache_port = int(config_mgr.get_setting('cache_port') or os.getenv('CACHE_PORT', '3306'))
+            self.cache_user = config_mgr.get_setting('cache_user') or os.getenv('CACHE_USER', 'access')
+            self.cache_password = config_mgr.get_setting('cache_password') or os.getenv('CACHE_PASSWORD', '')
             self.cache_database = config_mgr.get_setting('cache_database') or 'li_xml'
         except Exception as e:
             logger.warning(f"Could not load from ConfigManager, using environment: {e}")
@@ -46,6 +50,10 @@ class DHCPDatabase:
             self.database = 'access'
             self.user = os.getenv('MYSQL_USER', 'access')
             self.password = os.getenv('MYSQL_PASSWORD', '')
+            self.cache_host = os.getenv('CACHE_HOST', 'localhost')
+            self.cache_port = int(os.getenv('CACHE_PORT', '3306'))
+            self.cache_user = os.getenv('CACHE_USER', 'access')
+            self.cache_password = os.getenv('CACHE_PASSWORD', '')
             self.cache_database = 'li_xml'
         
         self.connection = None

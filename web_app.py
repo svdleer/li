@@ -808,7 +808,7 @@ def settings_page():
             # Update settings
             settings_to_update = [
                 'mysql_host', 'mysql_port', 'mysql_user', 'mysql_password', 'mysql_database',
-                'cache_database',
+                'cache_host', 'cache_port', 'cache_user', 'cache_password', 'cache_database',
                 'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group'
             ]
             
