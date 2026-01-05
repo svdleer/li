@@ -66,6 +66,14 @@
                         </a>
                     </li>
                     {% endif %}
+                    {% if check_permission('modify_config') %}
+                    <li class="nav-item">
+                        <a class="nav-link text-center px-2 py-1" href="{{ url_for('settings_page') }}">
+                            <div><i class="bi bi-gear-fill fs-6"></i></div>
+                            <small style="font-size: 0.7rem;">Settings</small>
+                        </a>
+                    </li>
+                    {% endif %}
                     {% if check_permission('view_validation') %}
                     <li class="nav-item">
                         <a class="nav-link text-center px-2 py-1" href="{{ url_for('scheduled_tasks') }}">
