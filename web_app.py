@@ -1307,7 +1307,7 @@ def refresh_device(device_name):
                 
                 # Re-validate DHCP
                 dhcp_db = DHCPDatabase()
-                if dhcp_db.connect():
+                if dhcp_db.test_connection():
                     # Determine OSS10 hostname for DHCP lookup
                     dhcp_hostname = device_data.get('oss10_hostname') or device_name
                     primary = device_data.get('primary_subnet')
@@ -1410,10 +1410,10 @@ def devices():
             try:
                 from dhcp_integration import DHCPIntegration as DHCPDatabase
                 dhcp_db = DHCPDatabase()
-                logger.info(f"Attempting DHCP database connection to {dhcp_db.host}:{dhcp_db.port}/{dhcp_db.database}")
-                if dhcp_db.connect():
+                logger.info(f"Attempting DHCP database connection to {dhcp_db.db_config["host"]}:{dhcp_db.db_config["port"]}/{dhcp_db.db_config["database"]}")
+                if dhcp_db.test_connection():
                     # Fetch all device validations from dhcp_validation_cache table in one query
-                    with dhcp_db.connection.cursor() as cursor:
+                    with dhcp_db.get_db_connection() as cursor:
                         cursor.execute(
                             "SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                         )
@@ -1506,7 +1506,7 @@ def devices_data():
             
             # Pre-connect to DHCP database while waiting for Netshot
             dhcp_db = DHCPDatabase()
-            dhcp_connected = dhcp_db.connect()
+            dhcp_connected = dhcp_db.test_connection()
             
             # Wait for Netshot data
             all_cmts = all_cmts_future.result()
@@ -1526,9 +1526,9 @@ def devices_data():
             try:
                 from dhcp_integration import DHCPIntegration as DHCPDatabase
                 dhcp_db = DHCPDatabase()
-                if dhcp_db.connect():
+                if dhcp_db.test_connection():
                     # Fetch all device validations from dhcp_validation_cache table in one query
-                    with dhcp_db.connection.cursor() as cursor:
+                    with dhcp_db.get_db_connection() as cursor:
                         cursor.execute(
                             "SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                         )
