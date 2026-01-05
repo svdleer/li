@@ -27,22 +27,26 @@ class DHCPDatabase:
     """Interface to DHCP MariaDB database"""
     
     def __init__(self):
-        # Load settings from ConfigManager
+        # Load settings from ConfigManager for the ACCESS database (real DHCP data)
         try:
             from config_manager import get_config_manager
             config_mgr = get_config_manager()
+            # Use 'access' database for DHCP scope data
             self.host = config_mgr.get_setting('mysql_host') or os.getenv('MYSQL_HOST', 'localhost')
             self.port = int(config_mgr.get_setting('mysql_port') or os.getenv('MYSQL_PORT', '3306'))
-            self.database = config_mgr.get_setting('mysql_database') or os.getenv('MYSQL_DATABASE', 'access')
+            self.database = config_mgr.get_setting('mysql_database') or 'access'
             self.user = config_mgr.get_setting('mysql_user') or os.getenv('MYSQL_USER', 'access')
             self.password = config_mgr.get_setting('mysql_password') or os.getenv('MYSQL_PASSWORD', '')
+            # Separate database for cache tables
+            self.cache_database = config_mgr.get_setting('cache_database') or 'li_xml'
         except Exception as e:
             logger.warning(f"Could not load from ConfigManager, using environment: {e}")
             self.host = os.getenv('MYSQL_HOST', 'localhost')
             self.port = int(os.getenv('MYSQL_PORT', '3306'))
-            self.database = os.getenv('MYSQL_DATABASE', 'access')
+            self.database = 'access'
             self.user = os.getenv('MYSQL_USER', 'access')
             self.password = os.getenv('MYSQL_PASSWORD', '')
+            self.cache_database = 'li_xml'
         
         self.connection = None
         
@@ -240,8 +244,8 @@ class DHCPDatabase:
         
         try:
             with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-                query = """
-                    SELECT * FROM dhcp_validation_cache 
+                query = f"""
+                    SELECT * FROM {self.cache_database}.dhcp_validation_cache 
                     WHERE device_name = %s 
                     AND updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
                     ORDER BY updated_at DESC LIMIT 1
@@ -273,8 +277,8 @@ class DHCPDatabase:
         try:
             import json
             with self.connection.cursor() as cursor:
-                query = """
-                    INSERT INTO dhcp_validation_cache 
+                query = f"""
+                    INSERT INTO {self.cache_database}.dhcp_validation_cache 
                     (device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched, updated_at)
                     VALUES (%s, %s, %s, %s, %s, %s, NOW())
                     ON DUPLICATE KEY UPDATE
