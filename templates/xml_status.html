@@ -299,6 +299,12 @@ function validateXML() {
     const invalidBadge = document.getElementById('xmlInvalidBadge');
     const errorMessage = document.getElementById('xmlErrorMessage');
     
+    // Check if elements exist before accessing properties
+    if (!validBadge || !invalidBadge || !errorMessage) {
+        console.error('Validation badge elements not found');
+        return;
+    }
+    
     if (errorNode) {
         // Invalid XML
         validBadge.style.display = 'none';
