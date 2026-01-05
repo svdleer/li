@@ -1410,7 +1410,7 @@ def devices():
             try:
                 from dhcp_integration import DHCPIntegration as DHCPDatabase
                 dhcp_db = DHCPDatabase()
-                logger.info(f"Attempting DHCP database connection to {dhcp_db.db_config["host"]}:{dhcp_db.db_config["port"]}/{dhcp_db.db_config["database"]}")
+                logger.info(f"Attempting DHCP database connection to {dhcp_db.db_config['host']}:{dhcp_db.db_config['port']}/{dhcp_db.db_config['database']}")
                 if dhcp_db.test_connection():
                     # Fetch all device validations from dhcp_validation_cache table in one query
                     with dhcp_db.get_db_connection() as cursor:
