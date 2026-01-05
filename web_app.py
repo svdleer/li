@@ -808,6 +808,7 @@ def settings_page():
             # Update settings
             settings_to_update = [
                 'mysql_host', 'mysql_port', 'mysql_user', 'mysql_password', 'mysql_database',
+                'cache_database',
                 'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group'
             ]
             
@@ -842,7 +843,8 @@ def settings_page():
         'mysql_host': os.getenv('MYSQL_HOST', 'localhost'),
         'mysql_port': os.getenv('MYSQL_PORT', '3306'),
         'mysql_user': os.getenv('MYSQL_USER', 'access'),
-        'mysql_password': os.getenv('MYSQL_PASSWORD', ''),
+        'mysql_password': os.getenv('MYSQL_PASSWORD', 'access'),
+        'cache_database': os.getenv('CACHE_DATABASE', ''),
         'mysql_database': os.getenv('MYSQL_DATABASE', 'li_xml'),
         'netshot_url': os.getenv('NETSHOT_API_URL', 'https://netshot.oss.local/api'),
         'netshot_api_key': os.getenv('NETSHOT_API_KEY', ''),
