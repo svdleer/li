@@ -32,7 +32,7 @@ services:
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=8502
       # Point to Mac host for tunneled services
-      - NETSHOT_API_URL=https://netshot.oss.local:8443/api
+      - NETSHOT_API_URL=https://netshot.oss.local/api
       - MYSQL_HOST=host.docker.internal
       # Set timezone
       - TZ=Europe/Amsterdam
