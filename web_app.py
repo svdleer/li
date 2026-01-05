@@ -38,6 +38,8 @@ from dhcp_integration import get_dhcp_integration
 from eve_li_xml_generator_v2 import EVEXMLGeneratorV2
 from audit_logger import get_audit_logger
 from rbac import get_rbac_manager, require_permission, check_permission, Role, Permission, ROLE_PERMISSIONS
+from config_manager import get_config_manager
+import bcrypt
 
 # Load environment variables
 load_dotenv()
@@ -2094,6 +2096,38 @@ if __name__ == "__main__":
     # Create necessary directories
     Path('logs').mkdir(exist_ok=True)
     Path('output').mkdir(exist_ok=True)
+    
+    # Initialize configuration manager and settings table
+    config_mgr = get_config_manager()
+    config_mgr.initialize_settings_table()
+    logger.info("Settings table initialized")
+    
+    # Create default admin user if users table is empty
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) as count FROM users")
+            result = cursor.fetchone()
+            user_count = result[0] if result else 0
+            
+            if user_count == 0:
+                # Create default admin user: admin/admin
+                default_password = "admin"
+                password_hash = bcrypt.hashpw(default_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                
+                cursor.execute(
+                    "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)",
+                    ('admin', 'admin@localhost', password_hash, 'admin')
+                )
+                conn.commit()
+                logger.info("Default admin user created (username: admin, password: admin)")
+                logger.warning("SECURITY: Please change the default admin password immediately!")
+            
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        logger.error(f"Error checking/creating default admin user: {e}")
     
     # Get configuration
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
