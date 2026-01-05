@@ -836,6 +836,24 @@ def settings_page():
     # Get all settings
     settings = config_mgr.get_all_settings()
     
+    # Add environment variable fallbacks for display
+    env_defaults = {
+        'mysql_host': os.getenv('MYSQL_HOST', 'localhost'),
+        'mysql_port': os.getenv('MYSQL_PORT', '3306'),
+        'mysql_user': os.getenv('MYSQL_USER', 'access'),
+        'mysql_password': os.getenv('MYSQL_PASSWORD', ''),
+        'mysql_database': os.getenv('MYSQL_DATABASE', 'li_xml'),
+        'netshot_url': os.getenv('NETSHOT_API_URL', 'https://netshot.oss.local/api'),
+        'netshot_api_key': os.getenv('NETSHOT_API_KEY', ''),
+        'netshot_cmts_group': 'CMTS',
+        'netshot_pe_group': 'PE'
+    }
+    
+    # Use database value if exists, otherwise use env default
+    for key, env_default in env_defaults.items():
+        if key in settings and not settings[key]['value']:
+            settings[key]['value'] = env_default
+    
     return render_template("settings.html",
                          user=session.get("user"),
                          app_title=APP_TITLE,
