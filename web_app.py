@@ -1413,11 +1413,13 @@ def devices():
                 logger.info(f"Attempting DHCP database connection to {dhcp_db.db_config['host']}:{dhcp_db.db_config['port']}/{dhcp_db.db_config['database']}")
                 if dhcp_db.test_connection():
                     # Fetch all device validations from dhcp_validation_cache table in one query
-                    with dhcp_db.get_db_connection() as cursor:
+                    with dhcp_db.get_db_connection() as conn:
+                        cursor = conn.cursor()
                         cursor.execute(
                             "SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                         )
                         validation_rows = cursor.fetchall()
+                        cursor.close()
                         validation_cache = {}
                         for row in validation_rows:
                             validation_cache[row['device_name']] = {
