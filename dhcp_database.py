@@ -230,6 +230,8 @@ class DHCPDatabase:
         else:
             dhcp_scope_set = {scope['scope'] for scope in public_dhcp_scopes}
             netshot_scope_set = set(public_ipv4_subnets)
+            result['missing_in_dhcp'] = list(netshot_scope_set - dhcp_scope_set)
+            result['extra_in_dhcp'] = list(dhcp_scope_set - netshot_scope_set)
             result['matched'] = list(netshot_scope_set & dhcp_scope_set)
         
         # Validate IPv6 (use prefixname column)
