@@ -9,7 +9,7 @@ services:
     
     # Port mapping for macOS (host mode doesn't work on Docker Desktop)
     ports:
-      - "8502:8080"
+      - "8502:8502"
     
     # Extra hosts to access local services
     extra_hosts:
