@@ -15,26 +15,14 @@ CONTROL_PATH="${HOME}/.ssh/cm-%r@%h:%p"
 CONTROL_PERSIST="10m"
 
 # Target servers (internal hosts accessible from bastion)
-NETSHOT_HOST="netshot.oss.local"
-NETSHOT_PORT="443"
+# Production server (runs both database and web app)
+PROD_SERVER="appdb-sh.oss.local"
 
-DB_HOST="appdb.oss.local"
-DB_PORT="3306"
-
-DHCP_DB_HOST="appdb.oss.local"
-DHCP_DB_PORT="3306"
-
-# NOTE: Upload API tunnel is NOT needed when using mock_upload_server.py locally
-# The mock server runs directly on localhost:2305
-# Uncomment below if you need to tunnel to a real test server
-# UPLOAD_API_HOST="172.17.130.71"
-# UPLOAD_API_PORT="2305"
+# Remote ports
+WEBAPP_PORT="8080"
 
 # Local ports
-LOCAL_NETSHOT_PORT="8443"
-LOCAL_DB_PORT="3306"
-LOCAL_DHCP_PORT="3307"
-# LOCAL_UPLOAD_PORT="2305"  # Not needed with mock server
+LOCAL_WEBAPP_PORT="8080"
 
 # Colors for output
 RED='\033[0;31m'
@@ -115,27 +103,16 @@ case "$1" in
     if ! check_control_master; then
         start_control_master || exit 1
         sleep 1
-    fi
-    
-    # Start individual tunnels (all use the same connection)
-    start_tunnel "Netshot API" "$LOCAL_NETSHOT_PORT" "$NETSHOT_HOST" "$NETSHOT_PORT"
-    start_tunnel "MySQL Database" "$LOCAL_DB_PORT" "$DB_HOST" "$DB_PORT"
-    start_tunnel "DHCP Database" "$LOCAL_DHCP_PORT" "$DHCP_DB_HOST" "$DHCP_DB_PORT"
-    # Upload tunnel not needed - use mock_upload_server.py instead
+    fiweb app on production server
+    start_tunnel "Web Application" "$LOCAL_WEBAPP_PORT" "$PROD_SERVER" "$WEBAPP_PORT"
     
     echo "================================"
-    echo -e "${GREEN}All tunnels started!${NC}\n"
+    echo -e "${GREEN}Tunnel started!${NC}\n"
     
-    echo -e "${YELLOW}Add these to your .env file:${NC}"
-    echo "NETSHOT_API_URL=https://localhost:${LOCAL_NETSHOT_PORT}/api"
-    echo "DB_HOST=localhost"
-    echo "DB_PORT=${LOCAL_DB_PORT}"
-    echo "DHCP_DB_HOST=localhost"
-    echo "DHCP_DB_PORT=${LOCAL_DHCP_PORT}"
-    echo ""
-    echo "# For testing uploads, run: python mock_upload_server.py"
-    echo "UPLOAD_API_BASE_URL=http://localhost:2305"
-    echo "UPLOAD_VERIFICATION_MODE=false  # Set to false to actually upload to mock server"
+    echo -e "${YELLOW}Access the web app:${NC}"
+    echo "http://localhost:${LOCAL_WEBAPP your .env or docker-compose.yml:${NC}"
+    echo "DB_HOST=host.docker.internal"
+    echo "DB_PORT=${LOCAL_PROD_DB_PORT}"
     echo ""
     ;;
     
@@ -170,16 +147,28 @@ case "$1" in
     
     echo ""
     
-    # Check individual ports
-    for port_name in "Netshot API:$LOCAL_NETSHOT_PORT" "MySQL:$LOCAL_DB_PORT" "DHCP:$LOCAL_DHCP_PORT"; do
-        name="${port_name%%:*}"
-        port="${port_name##*:}"
-        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-            echo -e "${GREEN}✓ $name: localhost:$port${NC}"
-        else
-            echo -e "${RED}✗ $name: Not listening${NC}"
-        fi
-    done
+    # Check tunnel port
+    if lsof -Pi :$LOCAL_PROD_DB_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${GREENWEBAPP_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Web App: localhost:$LOCAL_WEBAPP_PORT -> $PROD_SERVER:$WEBAPP_PORT${NC}"
+    else
+        echo -e "${RED}✗ Web App
+    
+    echo "================================"
+    echo ""
+    ;;
+    
+  test)
+    echo -e "\n${YELLOW}Testing Connection...${NC}"
+    echo "================================"
+    
+    echo -n "Production MySQL (appdb-sh.oss.local)... "
+    if nc -z Web App (appdb-sh.oss.local:8080)... "
+    if curl -s --connect-timeout 5 "http://localhost:${LOCAL_WEBAPP_PORT}/" >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ OK - Web app is accessible${NC}"
+        echo -e "${BLUE}   Access at: http://localhost:${LOCAL_WEBAPP_PORT}${NC}"
+    else
+        echo -e "${RED}✗ Failed - Web app
     
     echo "================================"
     echo ""
@@ -191,52 +180,16 @@ case "$1" in
     $0 start
     ;;
     
-  test)
-    echo -e "\n${YELLOW}Testing Connections...${NC}"
-    echo "================================"
-    
-    echo -n "Netshot API... "
-    if curl -k -s --connect-timeout 5 "https://localhost:${LOCAL_NETSHOT_PORT}/" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ OK${NC}"
-    else
-        echo -e "${RED}✗ Failed${NC}"
-    fi
-    
-    echo -n "MySQL... "
-    if nc -z localhost "$LOCAL_DB_PORT" 2>/dev/null; then
-        echo -e "${GREEN}✓ OK${NC}"
-    else
-        echo -e "${RED}✗ Failed${NC}"
-    fi
-    
-    echo -n "DHCP MySQL... "
-    if nc -z localhost "$LOCAL_DHCP_PORT" 2>/dev/null; then
-        echo -e "${GREEN}✓ OK${NC}"
-    else
-        echo -e "${RED}✗ Failed${NC}"
-    fi
-    
-    echo -n "Mock Upload Server (localhost:2305)... "
-    if curl -s --connect-timeout 2 "http://localhost:2305/health" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Running${NC}"
-    else
-        echo -e "${YELLOW}⚠ Not running (start with: python mock_upload_server.py)${NC}"
-    fi
-    
-    echo "================================"
-    echo ""
-    ;;
-    
   *)
     echo -e "${RED}Error: Unknown command '$1'${NC}\n"
     echo "Usage: $0 {start|stop|restart|status|test}"
     echo ""
     echo "Commands:"
-    echo "  start    - Start all SSH tunnels using ControlMaster"
-    echo "  stop     - Stop all SSH tunnels and ControlMaster"
-    echo "  restart  - Restart all tunnels"
+    echo "  start    - Start SSH tunnel using ControlMaster"
+    echo "  stop     - Stop SSH tunnel and ControlMaster"
+    echo "  restart  - Restart tunnel"
     echo "  status   - Show tunnel status"
-    echo "  test     - Test connections through tunnels"
+    echo "  test     - Test connection through tunnel"
     exit 1
     ;;
 esac
