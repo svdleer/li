@@ -30,7 +30,7 @@ services:
     # Override hosts to reach Mac host from container
     environment:
       - FLASK_HOST=0.0.0.0
-      - FLASK_PORT=8080
+      - FLASK_PORT=8502
       # Point to Mac host for tunneled services
       - NETSHOT_API_URL=https://host.docker.internal:8443/api
       - MYSQL_HOST=host.docker.internal
