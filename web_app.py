@@ -1150,17 +1150,19 @@ def search_page():
                 # Check if query matches any subnet (exact, partial match, or IP in subnet)
                 matching_subnets = []
                 for s in subnets:
-                    # String match (partial or exact)
+                    # String match (partial or exact) - works for both IPv4 and IPv6
                     if query in s:
                         matching_subnets.append(s)
                     else:
                         # Try IP address match (check if query IP is in subnet)
+                        # Only if query looks like a complete IP address
                         try:
                             query_ip = ipaddress.ip_address(query)
                             subnet_network = ipaddress.ip_network(s, strict=False)
                             if query_ip in subnet_network:
                                 matching_subnets.append(s)
                         except:
+                            # Not a valid IP address, skip IP matching
                             pass
                 
                 if matching_subnets:
