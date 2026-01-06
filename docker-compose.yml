@@ -46,6 +46,17 @@ services:
       # Point to Mac host for tunneled services
       - NETSHOT_API_URL=https://netshot.oss.local/api
       - MYSQL_HOST=host.docker.internal
+      # Email configuration
+      - EMAIL_ENABLED=true
+      - SMTP_HOST=smtp.oss.local
+      - SMTP_PORT=25
+      - SMTP_USE_TLS=false
+      - SMTP_USER=
+      - SMTP_PASSWORD=
+      - EMAIL_FROM=li-xml@appdb
+      - EMAIL_FROM_NAME=VFZ Lawfull Intercept Generator
+      - EMAIL_TO=silvester@vdleer.nl
+      - WEB_URL=http://localhost:8080
       # Set timezone
       - TZ=Europe/Amsterdam
       # Bypass proxy for internal hosts
