@@ -451,7 +451,10 @@ function updateUser() {
         return;
     }
     
-    fetch(`/api/users/${encodeURIComponent(originalEmail)}`, {
+    // Use relative URL to include SCRIPT_NAME prefix automatically
+    const apiUrl = `api/users/${encodeURIComponent(originalEmail)}`;
+    
+    fetch(apiUrl, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
