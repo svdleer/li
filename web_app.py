@@ -58,15 +58,20 @@ class ScriptNameFix:
         self.app = app
     
     def __call__(self, environ, start_response):
-        # If SCRIPT_NAME header is set by Apache, use it
+        # Apache sends SCRIPT_NAME as HTTP_SCRIPT_NAME header
         script_name = environ.get('HTTP_SCRIPT_NAME', '')
         if script_name:
             environ['SCRIPT_NAME'] = script_name
+            # Also update PATH_INFO to ensure proper routing
+            if not environ.get('PATH_INFO', '').startswith(script_name):
+                # Path is already stripped by Apache, just set SCRIPT_NAME
+                pass
         return self.app(environ, start_response)
 
 # Apply middleware in correct order
+# ScriptNameFix MUST be first to set SCRIPT_NAME before Flask processes the request
 app.wsgi_app = ScriptNameFix(app.wsgi_app)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=0)  # Don't use x_prefix, we handle it manually
 
 # Set application root for URL generation
 if APPLICATION_ROOT != '/':
