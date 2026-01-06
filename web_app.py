@@ -1201,7 +1201,7 @@ def search_page():
                          user=session.get("user"),
                          app_title=APP_TITLE,
                          query=query,
-                         results={'total_matches': len(results), 'devices': results})
+                         results={'total_matches': len(results), 'devices': results, 'query_type': 'subnet_search'})
 
 
 @app.route("/dashboard")
