@@ -395,7 +395,8 @@ function addUser() {
         return;
     }
     
-    fetch('/api/users', {
+    // Use relative URL to include SCRIPT_NAME prefix automatically
+    fetch('api/users', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -407,7 +408,14 @@ function addUser() {
             role: role
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        return response.json().then(data => {
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Failed to create user');
+            }
+            return data;
+        });
+    })
     .then(data => {
         if (data.success) {
             // Show generated password
@@ -423,11 +431,14 @@ function addUser() {
             
             location.reload();
         } else {
-            alert('Error: ' + (data.error || 'Failed to create user'));
+            alert('Error: ' + (data.error || data.message || 'Failed to create user'));
         }
     })
     .catch(error => {
-        alert('Error creating user: ' + error);
+        console.error('Error creating user:', error);
+        alert('Error creating user: ' + error.message);
+    });
+}
     });
 }
 
