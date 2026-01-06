@@ -222,7 +222,11 @@ class ConfigManager:
     
     def is_app_initialized(self) -> bool:
         """Check if the app has been initialized (setup completed)"""
-        return self.get_setting('app_initialized', 'false') == 'true'
+        value = self.get_setting('app_initialized', 'false')
+        # Handle both string and boolean values
+        if isinstance(value, bool):
+            return value
+        return str(value).lower() == 'true'
     
     def mark_app_initialized(self, updated_by: str = 'system') -> bool:
         """Mark the app as initialized"""
