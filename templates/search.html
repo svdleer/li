@@ -75,7 +75,7 @@
                                 <td>
                                     <strong>{{ result.device_info.oss10_hostname if result.device_info.oss10_hostname and result.device_info.oss10_hostname != 'N/A' else result.device_name }}</strong><br>
                                     {% if result.device_info.oss10_hostname and result.device_info.oss10_hostname != 'N/A' and result.device_name != result.device_info.oss10_hostname %}
-                                    <small class="text-muted">Netshot: {{ result.device_name }}</small><br>
+                                    <small class="text-muted">({{ result.device_name }})</small><br>
                                     {% endif %}
                                     <small class="text-muted">{{ result.device_info.mgmtAddress }}</small>
                                 </td>
