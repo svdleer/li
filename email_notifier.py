@@ -55,7 +55,7 @@ class EmailNotifier:
             return False
         
         # Use provided to_emails or fall back to configured ones
-        recipients = to_emails if recipiente self.to_emails
+        recipients = to_emails if to_emails else self.to_emails
         
         if not recipients:
             logger.warning("No recipient emails configured")
