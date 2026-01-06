@@ -1141,13 +1141,27 @@ def search_page():
             logger.info(f"Search query: '{query}', checking {len(all_devices)} devices")
             
             # Search through devices for matching subnets
+            import ipaddress
             for device in all_devices:
                 device_name = device.get('name', '')
                 device_type = 'CMTS' if device in cmts_devices else 'PE'
                 subnets = device.get('subnets', [])
                 
-                # Check if query matches any subnet (exact or partial match)
-                matching_subnets = [s for s in subnets if query in s]
+                # Check if query matches any subnet (exact, partial match, or IP in subnet)
+                matching_subnets = []
+                for s in subnets:
+                    # String match (partial or exact)
+                    if query in s:
+                        matching_subnets.append(s)
+                    else:
+                        # Try IP address match (check if query IP is in subnet)
+                        try:
+                            query_ip = ipaddress.ip_address(query)
+                            subnet_network = ipaddress.ip_network(s, strict=False)
+                            if query_ip in subnet_network:
+                                matching_subnets.append(s)
+                        except:
+                            pass
                 
                 if matching_subnets:
                     logger.info(f"Found {len(matching_subnets)} matches in {device_name}: {matching_subnets[:3]}")
