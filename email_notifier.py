@@ -61,6 +61,8 @@ class EmailNotifier:
             logger.warning("No recipient emails configured")
             return False
         
+        logger.info(f"Sending email to: {recipients}")
+        
         try:
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
