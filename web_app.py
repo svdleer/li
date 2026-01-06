@@ -1173,7 +1173,14 @@ def search_page():
                     # Determine which XML file the subnet belongs to
                     # SOHO for primary subnets, Infra for public subnets
                     primary = device.get('primary_subnet')
-                    xml_file = 'EVE_NL_SOHO' if any(s == primary for s in matching_subnets) else 'EVE_NL_Infra_CMTS'
+                    xml_type = 'EVE_NL_SOHO' if any(s == primary for s in matching_subnets) else 'EVE_NL_Infra_CMTS'
+                    
+                    # Find latest XML file with this type
+                    import glob
+                    from pathlib import Path
+                    output_dir = Path('output')
+                    xml_files = sorted(output_dir.glob(f'{xml_type}-*.xml'), key=lambda x: x.stat().st_mtime, reverse=True)
+                    xml_file = xml_files[0].name if xml_files else f'{xml_type}.xml'
                     
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
