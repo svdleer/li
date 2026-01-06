@@ -1187,8 +1187,14 @@ def search_page():
                         'device_name': device_name,
                         'device_type': device_type,
                         'subnets': matching_subnets,
+                        'subnet_cidr': ', '.join(matching_subnets),
                         'dhcp_status': dhcp_status,
                         'in_dhcp': in_dhcp,
+                        'device_info': {
+                            'mgmtAddress': device.get('loopback'),
+                            'location': device.get('location', 'N/A')
+                        },
+                        'included_in_xml': True,  # Assume included for now
                         'loopback': device.get('loopback'),
                         'primary_subnet': device.get('primary_subnet')
                     })
@@ -1201,7 +1207,7 @@ def search_page():
                          user=session.get("user"),
                          app_title=APP_TITLE,
                          query=query,
-                         results={'total_matches': len(results), 'devices': results, 'query_type': 'subnet_search'})
+                         results={'total_matches': len(results), 'results': results, 'query_type': 'subnet_search'})
 
 
 @app.route("/dashboard")
