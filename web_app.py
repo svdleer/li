@@ -51,11 +51,14 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', str(uuid.uuid4()))
 
 # Configure for reverse proxy with subpath
 APPLICATION_ROOT = os.getenv('APPLICATION_ROOT', '/li-xml')
+
+# Apply ProxyFix middleware FIRST to handle proxy headers
+# This ensures Flask sees the correct scheme, host, and path prefix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=1)
+
+# Set application root for URL generation
 if APPLICATION_ROOT != '/':
     app.config['APPLICATION_ROOT'] = APPLICATION_ROOT
-
-# Apply ProxyFix middleware for proper handling of proxy headers
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=1)
 
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False

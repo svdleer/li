@@ -16,13 +16,20 @@ Add to your Apache VirtualHost config:
     
     # Reverse proxy for LI XML application
     ProxyPreserveHost On
+    
+    # Important: Don't include trailing slashes
     ProxyPass /li-xml http://localhost:8502
     ProxyPassReverse /li-xml http://localhost:8502
     
-    # Pass real client IP and protocol
+    # Pass headers for proper URL generation
     RequestHeader set X-Forwarded-Proto "https"
     RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
     RequestHeader set X-Forwarded-Prefix "/li-xml"
+    
+    # Alternative: Use SCRIPT_NAME for Flask
+    <Location /li-xml>
+        RequestHeader set SCRIPT_NAME "/li-xml"
+    </Location>
 </VirtualHost>
 ```
 
