@@ -67,9 +67,11 @@ class EmailNotifier:
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
             msg['From'] = f"{self.from_name} <{self.from_email}>"
-            msg['To'] = ', '.join(self.to_emails)
-                        logger.info(f"Email headers - From: {msg['From']}, To: {msg['To']}")
-                        # Add plain text version as fallback
+            msg['To'] = ', '.join(recipients)
+            
+            logger.info(f"Email headers - From: {msg['From']}, To: {msg['To']}")
+            
+            # Add plain text version as fallback
             if text_body:
                 msg.attach(MIMEText(text_body, 'plain'))
             
