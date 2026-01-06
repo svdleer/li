@@ -60,12 +60,17 @@ class ScriptNameFix:
     def __call__(self, environ, start_response):
         # Apache sends SCRIPT_NAME as HTTP_SCRIPT_NAME header
         script_name = environ.get('HTTP_SCRIPT_NAME', '')
+        
+        # Debug logging
+        logger.info(f"ScriptNameFix - HTTP_SCRIPT_NAME: '{script_name}'")
+        logger.info(f"ScriptNameFix - PATH_INFO: '{environ.get('PATH_INFO', '')}'")
+        
         if script_name:
             environ['SCRIPT_NAME'] = script_name
-            # Also update PATH_INFO to ensure proper routing
-            if not environ.get('PATH_INFO', '').startswith(script_name):
-                # Path is already stripped by Apache, just set SCRIPT_NAME
-                pass
+            logger.info(f"ScriptNameFix - Set SCRIPT_NAME to: '{script_name}'")
+        else:
+            logger.info("ScriptNameFix - No HTTP_SCRIPT_NAME header found")
+            
         return self.app(environ, start_response)
 
 # Apply middleware in correct order
