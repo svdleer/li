@@ -1207,6 +1207,7 @@ def search_page():
             logger.error(f"Search error: {e}")
             flash(f"Search error: {str(e)}", "danger")
     
+    logger.info(f"Search complete: {len(results)} results found")
     return render_template("search.html",
                          user=session.get("user"),
                          app_title=APP_TITLE,

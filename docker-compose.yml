@@ -35,6 +35,12 @@ services:
       - BOOTSTRAP_MYSQL_USER=access
       - BOOTSTRAP_MYSQL_PASSWORD=44cC3sS
       - BOOTSTRAP_MYSQL_DATABASE=li_xml
+      # DHCP database credentials for dhcp_database module
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_USER=access
+      - DB_PASSWORD=44cC3sS
+      - DB_DATABASE=access
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=8502
       # Point to Mac host for tunneled services

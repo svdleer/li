@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Application Settings - {{ app_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-gear-fill"></i> Application Settings</h2>
+            <p class="text-muted">Configure database connections and external services</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        <!-- MySQL Database Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-database"></i> MySQL Database (DHCP Data)</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Database containing DHCP scope data (scopes, scopesnew, etc.)</p>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-hdd-network"></i> Host</label>
+                                <input type="text" class="form-control" name="mysql_host" 
+                                       value="{{ settings.mysql_host.value if settings.mysql_host else '' }}"
+                                       placeholder="localhost">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-ethernet"></i> Port</label>
+                                <input type="text" class="form-control" name="mysql_port" 
+                                       value="{{ settings.mysql_port.value if settings.mysql_port else '' }}"
+                                       placeholder="3306">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-person"></i> Username</label>
+                                <input type="text" class="form-control" name="mysql_user" 
+                                       value="{{ settings.mysql_user.value if settings.mysql_user else '' }}"
+                                       placeholder="access">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-key"></i> Password</label>
+                                <input type="password" class="form-control" name="mysql_password" 
+                                       value="{{ settings.mysql_password.value if settings.mysql_password else '' }}">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-folder"></i> Database</label>
+                                <input type="text" class="form-control" name="mysql_database" 
+                                       value="{{ settings.mysql_database.value if settings.mysql_database else '' }}"
+                                       placeholder="access">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cache Database Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-archive"></i> Cache Database (Application Cache)</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Database for cache tables (dhcp_validation_cache, etc.)</p>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-hdd-network"></i> Host</label>
+                                <input type="text" class="form-control" name="cache_host" 
+                                       value="{{ settings.cache_host.value if settings.cache_host else '' }}"
+                                       placeholder="localhost">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-ethernet"></i> Port</label>
+                                <input type="text" class="form-control" name="cache_port" 
+                                       value="{{ settings.cache_port.value if settings.cache_port else '' }}"
+                                       placeholder="3306">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-person"></i> Username</label>
+                                <input type="text" class="form-control" name="cache_user" 
+                                       value="{{ settings.cache_user.value if settings.cache_user else '' }}"
+                                       placeholder="access">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-key"></i> Password</label>
+                                <input type="password" class="form-control" name="cache_password" 
+                                       value="{{ settings.cache_password.value if settings.cache_password else '' }}">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-folder"></i> Database</label>
+                                <input type="text" class="form-control" name="cache_database" 
+                                       value="{{ settings.cache_database.value if settings.cache_database else '' }}"
+                                       placeholder="li_xml">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Netshot API Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> Netshot API</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Network device inventory and configuration management system</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-link-45deg"></i> API URL</label>
+                                <input type="text" class="form-control" name="netshot_url" 
+                                       value="{{ settings.netshot_url.value if settings.netshot_url else '' }}"
+                                       placeholder="https://netshot.oss.local/api">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-key-fill"></i> API Key</label>
+                                <input type="password" class="form-control" name="netshot_api_key" 
+                                       value="{{ settings.netshot_api_key.value if settings.netshot_api_key else '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-router"></i> CMTS Device Group ID</label>
+                                <input type="text" class="form-control" name="netshot_cmts_group" 
+                                       value="{{ settings.netshot_cmts_group.value if settings.netshot_cmts_group else '' }}"
+                                       placeholder="207">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-diagram-3"></i> PE Device Group ID</label>
+                                <input type="text" class="form-control" name="netshot_pe_group" 
+                                       value="{{ settings.netshot_pe_group.value if settings.netshot_pe_group else '' }}"
+                                       placeholder="205">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Save Settings
+                        </button>
+                        <a href="/dashboard" class="btn btn-secondary btn-lg ms-2">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">CMTS Group</label>
+                        <input type="text" class="form-control" name="netshot_cmts_group" 
+                               value="{{ settings.netshot_cmts_group.value if settings.netshot_cmts_group else '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">PE Group</label>
+                        <input type="text" class="form-control" name="netshot_pe_group" 
+                               value="{{ settings.netshot_pe_group.value if settings.netshot_pe_group else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Settings
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
