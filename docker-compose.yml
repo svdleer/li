@@ -57,6 +57,11 @@ services:
       - EMAIL_FROM_NAME=VFZ Lawfull Intercept Generator
       - EMAIL_TO=silvester@vdleer.nl
       - WEB_URL=http://localhost:8080
+      # Proxy configuration (use HTTP proxy for both HTTP and HTTPS)
+      - HTTP_PROXY=http://proxy.oss.local:3128
+      - HTTPS_PROXY=http://proxy.oss.local:3128
+      - http_proxy=http://proxy.oss.local:3128
+      - https_proxy=http://proxy.oss.local:3128
       # Set timezone
       - TZ=Europe/Amsterdam
       # Bypass proxy for internal hosts
