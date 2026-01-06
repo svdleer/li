@@ -17,31 +17,25 @@ Add to your Apache VirtualHost config:
     # Reverse proxy for LI XML application
     ProxyPreserveHost On
     
-    # Strip /li-xml prefix when forwarding to Flask
-    # Flask receives requests to / but generates URLs with /li-xml
-    ProxyPass /li-xml/ http://localhost:8502/
-    ProxyPassReverse /li-xml/ http://localhost:8502/
-    
-    # Also handle /li-xml without trailing slash
-    ProxyPass /li-xml http://localhost:8502/
-    ProxyPassReverse /li-xml http://localhost:8502/
-    
-    # Pass headers for proper URL generation
-    RequestHeader set X-Forwarded-Proto "https"
-    RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
-    
-    # Tell Flask the prefix for URL generation
+    # Location block handles both path matching and proxying
     <Location /li-xml>
+        # Strip /li-xml prefix when forwarding to Flask
+        ProxyPass http://localhost:8502/
+        ProxyPassReverse http://localhost:8502/
+        
+        # Tell Flask the prefix for URL generation
         RequestHeader set SCRIPT_NAME "/li-xml"
+        RequestHeader set X-Forwarded-Proto "https"
+        RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
     </Location>
 </VirtualHost>
 ```
 
 ### Important: Path Rewriting
 
-The key is that Apache **strips** `/li-xml` before sending to Flask:
+The `<Location>` block handles everything:
 - User visits: `https://domain.com/li-xml/login`
-- Apache forwards: `http://localhost:8502/login` (prefix stripped)
+- Apache forwards: `http://localhost:8502/login` (prefix stripped by Location)
 - Flask processes: `/login` route
 - Flask generates URLs: `/li-xml/login` (using SCRIPT_NAME)
 
