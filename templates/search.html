@@ -64,8 +64,7 @@
                                 <th>Device</th>
                                 <th>Type</th>
                                 <th>Subnet</th>
-                                <th>Location</th>
-                                <th>XML Status</th>
+                                <th>XML File</th>
                                 <th>Details</th>
                             </tr>
                         </thead>
@@ -91,18 +90,7 @@
                                 </td>
                                 <td>
                                     {{ result.device_info.location }}
-                                </td>
-                                <td>
-                                    {% if result.included_in_xml %}
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> Included
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-exclamation-triangle"></i> Excluded
-                                    </span>
-                                    {% endif %}
-                                </td>
+                                </td<span class="badge bg-info">{{ result.xml_file }}</span>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" 
                                             data-bs-toggle="collapse" 
@@ -123,7 +111,7 @@
                                         <p><strong>Device Type:</strong> {{ result.device_info.device_type }}</p>
                                         <p><strong>Software Version:</strong> {{ result.device_info.softwareVersion }}</p>
                                         <p><strong>Loopback:</strong> {{ result.device_info.loopback }}</p>
-                                    </div>
+                                    </div>5
                                 </td>
                             </tr>
                             {% endfor %}

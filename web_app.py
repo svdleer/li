@@ -1170,6 +1170,11 @@ def search_page():
                     family = device.get('family', 'Unknown')
                     vendor = family.split()[0] if family and family != 'Unknown' else 'Unknown'
                     
+                    # Determine which XML file the subnet belongs to
+                    # SOHO for primary subnets, Infra for public subnets
+                    primary = device.get('primary_subnet')
+                    xml_file = 'EVE_NL_SOHO' if any(s == primary for s in matching_subnets) else 'EVE_NL_Infra_CMTS'
+                    
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
                     in_dhcp = False
@@ -1206,11 +1211,11 @@ def search_page():
                             logger.error(f"Error checking DHCP status: {e}")
                     
                     logger.info(f"Adding result for {device_name}: {len(matching_subnets)} subnets, DHCP: {dhcp_status}")
-                    results.append({
-                        'device_name': device_name,
-                        'device_type': device_type,
-                        'subnets': matching_subnets,
-                        'subnet_cidr': ', '.join(matching_subnets),
+                    resulxml_file': xml_file,
+                        'dhcp_status': dhcp_status,
+                        'in_dhcp': in_dhcp,
+                        'device_info': {
+                            'mgmtAddress': device.get('loopback
                         'dhcp_status': dhcp_status,
                         'in_dhcp': in_dhcp,
                         'device_info': {
