@@ -1165,6 +1165,11 @@ def search_page():
                 
                 if matching_subnets:
                     logger.info(f"Found {len(matching_subnets)} matches in {device_name}: {matching_subnets[:3]}")
+                    
+                    # Extract vendor from family (e.g., "Arris E6000" -> "Arris")
+                    family = device.get('family', 'Unknown')
+                    vendor = family.split()[0] if family and family != 'Unknown' else 'Unknown'
+                    
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
                     in_dhcp = False
