@@ -23,10 +23,16 @@ Add to your Apache VirtualHost config:
         ProxyPass http://localhost:8502/
         ProxyPassReverse http://localhost:8502/
         
-        # Tell Flask the prefix for URL generation
-        RequestHeader set SCRIPT_NAME "/li-xml"
+        # Tell Flask the prefix for URL generation (use X-Script-Name header)
+        RequestHeader set X-Script-Name "/li-xml"
         RequestHeader set X-Forwarded-Proto "https"
         RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
+        RequestHeader set X-Forwarded-Port "443"
+        
+        # WebSocket support (optional)
+        RewriteEngine On
+        RewriteCond %{HTTP:Upgrade} =websocket [NC]
+        RewriteRule /li-xml/(.*) ws://localhost:8502/$1 [P,L]
     </Location>
 </VirtualHost>
 ```

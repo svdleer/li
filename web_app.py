@@ -58,18 +58,18 @@ class ScriptNameFix:
         self.app = app
     
     def __call__(self, environ, start_response):
-        # Apache sends SCRIPT_NAME as HTTP_SCRIPT_NAME header
-        script_name = environ.get('HTTP_SCRIPT_NAME', '')
+        # Apache sends X-Script-Name header which becomes HTTP_X_SCRIPT_NAME
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
         
         # Debug logging
-        logger.info(f"ScriptNameFix - HTTP_SCRIPT_NAME: '{script_name}'")
+        logger.info(f"ScriptNameFix - HTTP_X_SCRIPT_NAME: '{script_name}'")
         logger.info(f"ScriptNameFix - PATH_INFO: '{environ.get('PATH_INFO', '')}'")
         
         if script_name:
             environ['SCRIPT_NAME'] = script_name
             logger.info(f"ScriptNameFix - Set SCRIPT_NAME to: '{script_name}'")
         else:
-            logger.info("ScriptNameFix - No HTTP_SCRIPT_NAME header found")
+            logger.info("ScriptNameFix - No HTTP_X_SCRIPT_NAME header found")
             
         return self.app(environ, start_response)
 
