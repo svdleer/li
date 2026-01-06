@@ -119,6 +119,10 @@
                 <button class="btn btn-sm btn-light" onclick="alert('Demo mode: User creation disabled')">
                     <i class="bi bi-plus-circle"></i> Add User
                 </button>
+                {% else %}
+                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="bi bi-plus-circle"></i> Add User
+                </button>
                 {% endif %}
             </div>
             <div class="card-body p-0">
@@ -437,8 +441,6 @@ function addUser() {
     .catch(error => {
         console.error('Error creating user:', error);
         alert('Error creating user: ' + error.message);
-    });
-}
     });
 }
 
