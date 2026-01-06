@@ -1212,7 +1212,7 @@ def search_page():
                             'mgmtAddress': device.get('loopback'),
                             'location': device.get('location', 'N/A'),
                             'oss10_hostname': device.get('oss10_hostname', 'N/A'),
-                            'vendor': 'Cisco',  # Most devices are Cisco
+                            'vendor': vendor,
                             'device_type': device.get('family', 'Unknown'),
                             'software_version': device.get('softwareVersion', 'Unknown'),
                             'loopback': device.get('loopback', 'N/A')
