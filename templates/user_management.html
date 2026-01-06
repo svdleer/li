@@ -434,7 +434,8 @@ function addUser() {
 function editUser(email, name, username) {
     document.getElementById('editOriginalEmail').value = email;
     document.getElementById('editEmail').value = email;
-    document.getElementById('editUsername').value = username || '';
+    // Handle 'None' string or null/undefined values
+    document.getElementById('editUsername').value = (username && username !== 'None') ? username : '';
     document.getElementById('editName').value = name;
     new bootstrap.Modal(document.getElementById('editUserModal')).show();
 }
