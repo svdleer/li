@@ -1175,14 +1175,22 @@ def search_page():
                     primary = device.get('primary_subnet')
                     xml_type = 'EVE_NL_SOHO' if any(s == primary for s in matching_subnets) else 'EVE_NL_Infra_CMTS'
                     
-                    # Find latest XML file with this type from mounted output directory
+                    # Try to find latest XML file, otherwise use today's date
                     try:
                         from pathlib import Path
+                        from datetime import datetime
                         output_dir = Path('/app/output')
                         xml_files = sorted(output_dir.glob(f'{xml_type}-*.xml'), reverse=True)
-                        xml_file = xml_files[0].name if xml_files else f'{xml_type}.xml'
+                        if xml_files:
+                            xml_file = xml_files[0].name
+                        else:
+                            # No files found, use today's date
+                            today = datetime.now().strftime('%Y%m%d')
+                            xml_file = f'{xml_type}-{today}.xml'
                     except:
-                        xml_file = f'{xml_type}.xml'
+                        from datetime import datetime
+                        today = datetime.now().strftime('%Y%m%d')
+                        xml_file = f'{xml_type}-{today}.xml'
                     
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
