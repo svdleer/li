@@ -300,7 +300,7 @@ function changeRole(email, newRole) {
         return false;
     }
     
-    fetch('/api/users/change-role', {
+    fetch('api/users/change-role', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -331,7 +331,7 @@ function resetPassword(email, name) {
         return false;
     }
     
-    fetch(`/api/users/${encodeURIComponent(email)}/reset-password`, {
+    fetch(`api/users/${encodeURIComponent(email)}/reset-password`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -362,7 +362,7 @@ function deleteUser(email, name) {
         return false;
     }
     
-    fetch(`/api/users/${encodeURIComponent(email)}`, {
+    fetch(`api/users/${encodeURIComponent(email)}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'

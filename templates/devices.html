@@ -524,7 +524,7 @@ document.querySelectorAll('.refresh-device').forEach(button => {
         this.disabled = true;
         
         // Call refresh endpoint
-        fetch(`/devices/refresh/${deviceName}`, {
+        fetch(`devices/refresh/${deviceName}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -389,7 +389,7 @@ function extractCronFromTrigger(triggerStr) {
 }
 
 function loadJobStatus() {
-    fetch('/api/tasks/status')
+    fetch('api/tasks/status')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -439,7 +439,7 @@ function runTask(taskId) {
         return;
     }
     
-    fetch(`/api/tasks/${taskId}/run`, {
+    fetch(`api/tasks/${taskId}/run`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -461,7 +461,7 @@ function runTask(taskId) {
 }
 
 function loadTaskHistory() {
-    fetch('/api/tasks/history')
+    fetch('api/tasks/history')
         .then(response => response.json())
         .then(data => {
             const tbody = document.getElementById('taskHistoryBody');
@@ -777,7 +777,7 @@ function saveSchedule() {
         return;
     }
     
-    fetch(`/api/tasks/${taskId}/schedule`, {
+    fetch(`api/tasks/${taskId}/schedule`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

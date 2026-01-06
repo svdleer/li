@@ -330,7 +330,7 @@ function generateXML(mode) {
     messageEl.textContent = `Generating ${mode.toUpperCase()} XML files...`;
     modal.show();
     
-    fetch('/api/generate-xml', {
+    fetch('api/generate-xml', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

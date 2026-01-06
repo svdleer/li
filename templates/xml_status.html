@@ -229,7 +229,7 @@ function viewXML(filename) {
         if (xmlSearchResults) xmlSearchResults.textContent = '';
         
         // Fetch XML content
-        fetch(`/api/view-xml/${filename}`)
+        fetch(`api/view-xml/${filename}`)
             .then(response => response.text())
             .then(xml => {
                 currentXMLContent = xml;
@@ -347,7 +347,7 @@ function uploadXML(filename) {
     messageEl.textContent = `Uploading ${filename}...`;
     modal.show();
     
-    fetch('/api/upload-xml', {
+    fetch('api/upload-xml', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
