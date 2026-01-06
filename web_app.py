@@ -1210,8 +1210,15 @@ def search_page():
                         'in_dhcp': in_dhcp,
                         'device_info': {
                             'mgmtAddress': device.get('loopback'),
-                            'location': device.get('location', 'N/A')
+                            'location': device.get('location', 'N/A'),
+                            'oss10_hostname': device.get('oss10_hostname', 'N/A'),
+                            'vendor': 'Cisco',  # Most devices are Cisco
+                            'device_type': device.get('family', 'Unknown'),
+                            'software_version': device.get('softwareVersion', 'Unknown'),
+                            'loopback': device.get('loopback', 'N/A')
                         },
+                        'validation_status': dhcp_status,
+                        'validation_reason': 'DHCP scope found and configured' if in_dhcp else 'DHCP scope missing or not configured',
                         'included_in_xml': True,  # Assume included for now
                         'loopback': device.get('loopback'),
                         'primary_subnet': device.get('primary_subnet')
