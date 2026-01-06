@@ -1138,6 +1138,8 @@ def search_page():
             pe_devices = netshot_client.get_pe_devices()
             all_devices = cmts_devices + pe_devices
             
+            logger.info(f"Search query: '{query}', checking {len(all_devices)} devices")
+            
             # Search through devices for matching subnets
             for device in all_devices:
                 device_name = device.get('name', '')
@@ -1148,6 +1150,7 @@ def search_page():
                 matching_subnets = [s for s in subnets if query in s]
                 
                 if matching_subnets:
+                    logger.info(f"Found {len(matching_subnets)} matches in {device_name}: {matching_subnets[:3]}")
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
                     in_dhcp = False
