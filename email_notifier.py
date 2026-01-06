@@ -83,13 +83,15 @@ class EmailNotifier:
                 if self.smtp_use_tls:
                     server.starttls()
                 if self.smtp_user and self.smtp_password:
-                    server.login(self.smtp_user, self.smtp_password)                
+                    server.login(self.smtp_user, self.smtp_password)
+                
                 # Log what we're actually sending
                 logger.info(f"Connecting to SMTP: {self.smtp_host}:{self.smtp_port}")
                 logger.info(f"Sending message from {self.from_email} to {recipients}")
-                                server.send_message(msg)
+                
+                server.send_message(msg)
             
-            logger.info(f"Email sent to {len(self.to_emails)} recipient(s)")
+            logger.info(f"Email sent to {len(recipients)} recipient(s)")
             return True
             
         except Exception as e:
