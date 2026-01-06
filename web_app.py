@@ -1175,12 +1175,20 @@ def search_page():
                     primary = device.get('primary_subnet')
                     xml_type = 'EVE_NL_SOHO' if any(s == primary for s in matching_subnets) else 'EVE_NL_Infra_CMTS'
                     
-                    # Find latest XML file with this type
-                    import glob
-                    from pathlib import Path
-                    output_dir = Path('output')
-                    xml_files = sorted(output_dir.glob(f'{xml_type}-*.xml'), key=lambda x: x.stat().st_mtime, reverse=True)
-                    xml_file = xml_files[0].name if xml_files else f'{xml_type}.xml'
+                    # Find latest XML file with this type (check host output directory via SSH)
+                    try:
+                        import subprocess
+                        result = subprocess.run(
+                            ['ssh', '-p', '2222', 'svdleer@localhost', 
+                             f'ls -t /opt/docker/eve-li-web/output/{xml_type}-*.xml 2>/dev/null | head -1'],
+                            capture_output=True, text=True, timeout=2
+                        )
+                        if result.returncode == 0 and result.stdout.strip():
+                            xml_file = result.stdout.strip().split('/')[-1]
+                        else:
+                            xml_file = f'{xml_type}.xml'
+                    except:
+                        xml_file = f'{xml_type}.xml'
                     
                     # Get DHCP validation status
                     dhcp_status = 'Unknown'
