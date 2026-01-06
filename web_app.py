@@ -52,8 +52,20 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', str(uuid.uuid4()))
 # Configure for reverse proxy with subpath
 APPLICATION_ROOT = os.getenv('APPLICATION_ROOT', '/li-xml')
 
-# Apply ProxyFix middleware FIRST to handle proxy headers
-# This ensures Flask sees the correct scheme, host, and path prefix
+# Custom middleware to handle SCRIPT_NAME from Apache
+class ScriptNameFix:
+    def __init__(self, app):
+        self.app = app
+    
+    def __call__(self, environ, start_response):
+        # If SCRIPT_NAME header is set by Apache, use it
+        script_name = environ.get('HTTP_SCRIPT_NAME', '')
+        if script_name:
+            environ['SCRIPT_NAME'] = script_name
+        return self.app(environ, start_response)
+
+# Apply middleware in correct order
+app.wsgi_app = ScriptNameFix(app.wsgi_app)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=1)
 
 # Set application root for URL generation
