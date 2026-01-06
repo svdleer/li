@@ -1186,6 +1186,7 @@ def search_page():
                         except Exception as e:
                             logger.error(f"Error checking DHCP status: {e}")
                     
+                    logger.info(f"Adding result for {device_name}: {len(matching_subnets)} subnets, DHCP: {dhcp_status}")
                     results.append({
                         'device_name': device_name,
                         'device_type': device_type,
