@@ -1211,16 +1211,15 @@ def search_page():
                             logger.error(f"Error checking DHCP status: {e}")
                     
                     logger.info(f"Adding result for {device_name}: {len(matching_subnets)} subnets, DHCP: {dhcp_status}")
-                    resulxml_file': xml_file,
-                        'dhcp_status': dhcp_status,
-                        'in_dhcp': in_dhcp,
-                        'device_info': {
-                            'mgmtAddress': device.get('loopback
+                    results.append({
+                        'device_name': device_name,
+                        'device_type': device_type,
+                        'subnets': matching_subnets,
+                        'subnet_cidr': ', '.join(matching_subnets),
                         'dhcp_status': dhcp_status,
                         'in_dhcp': in_dhcp,
                         'device_info': {
                             'mgmtAddress': device.get('loopback'),
-                            'location': device.get('location', 'N/A'),
                             'oss10_hostname': device.get('oss10_hostname', 'N/A'),
                             'vendor': vendor,
                             'device_type': device.get('family', 'Unknown'),
