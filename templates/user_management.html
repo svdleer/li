@@ -458,12 +458,20 @@ function updateUser() {
         body: JSON.stringify({
             name: name,
             email: newEmail,
-            username: username || null
+            username: username || null  // Send null instead of empty string
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Failed to update user');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
             alert('User updated successfully');
             location.reload();
         } else {
@@ -471,7 +479,8 @@ function updateUser() {
         }
     })
     .catch(error => {
-        alert('Error updating user: ' + error);
+        console.error('Error updating user:', error);
+        alert('Error updating user: ' + error.message);
     });
 }
 </script>
