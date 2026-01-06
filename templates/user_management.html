@@ -463,12 +463,12 @@ function updateUser() {
         })
     })
     .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.error || 'Failed to update user');
-            });
-        }
-        return response.json();
+        return response.json().then(data => {
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Failed to update user');
+            }
+            return data;
+        });
     })
     .then(data => {
         if (data.success) {
@@ -476,7 +476,7 @@ function updateUser() {
             alert('User updated successfully');
             location.reload();
         } else {
-            alert('Error: ' + (data.error || 'Failed to update user'));
+            alert('Error: ' + (data.error || data.message || 'Failed to update user'));
         }
     })
     .catch(error => {
