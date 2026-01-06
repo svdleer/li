@@ -253,7 +253,7 @@ class RBACManager:
         try:
             conn = self._get_connection()
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT email, name, role FROM users ORDER BY email")
+            cursor.execute("SELECT email, username, name, role FROM users ORDER BY email")
             users = cursor.fetchall()
             cursor.close()
             conn.close()
