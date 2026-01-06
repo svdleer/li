@@ -1216,6 +1216,7 @@ def search_page():
                         'device_type': device_type,
                         'subnets': matching_subnets,
                         'subnet_cidr': ', '.join(matching_subnets),
+                        'xml_file': xml_file,
                         'dhcp_status': dhcp_status,
                         'in_dhcp': in_dhcp,
                         'device_info': {
