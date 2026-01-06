@@ -127,6 +127,7 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Username</th>
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Permissions</th>
@@ -139,6 +140,13 @@
                                 <td>
                                     <i class="bi bi-person-circle"></i>
                                     <strong>{{ user_item.name }}</strong>
+                                </td>
+                                <td>
+                                    {% if user_item.username %}
+                                    <code>{{ user_item.username }}</code>
+                                    {% else %}
+                                    <span class="text-muted"><i>Not set</i></span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <code>{{ user_item.email }}</code>
