@@ -25,6 +25,7 @@ import uuid
 
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, send_file
 from flask_session import Session
+from werkzeug.middleware.proxy_fix import ProxyFix
 import msal
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -47,6 +48,15 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', str(uuid.uuid4()))
+
+# Configure for reverse proxy with subpath
+APPLICATION_ROOT = os.getenv('APPLICATION_ROOT', '/li-xml')
+if APPLICATION_ROOT != '/':
+    app.config['APPLICATION_ROOT'] = APPLICATION_ROOT
+
+# Apply ProxyFix middleware for proper handling of proxy headers
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_prefix=1)
+
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_FILE_DIR'] = Path('.flask_session')
