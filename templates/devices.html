@@ -111,7 +111,29 @@
                             </td>
                             <td>
                                 {% for issue in device.issues %}
-                                <span class="badge bg-warning text-dark">{{ issue }}</span>
+                                    {% if issue == 'Missing in DHCP' %}
+                                        <span class="badge bg-warning text-dark">{{ issue }}</span>
+                                        {% if device.get('dhcp_validation', {}).get('missing_in_dhcp') %}
+                                        <button class="btn btn-sm btn-outline-warning ms-1" type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#dhcp-missing-{{ device.name|replace('.', '-')|replace('_', '-') }}"
+                                                title="Show missing subnets">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                        <div class="collapse mt-2" id="dhcp-missing-{{ device.name|replace('.', '-')|replace('_', '-') }}">
+                                            <div class="card card-body bg-light">
+                                                <small><strong>Missing in DHCP:</strong></small>
+                                                <ul class="mb-0 small">
+                                                {% for subnet in device.dhcp_validation.missing_in_dhcp %}
+                                                    <li><code>{{ subnet }}</code></li>
+                                                {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">{{ issue }}</span>
+                                    {% endif %}
                                 {% endfor %}
                             </td>
                             <td>{{ device.loopback or '<span class="text-danger">Missing</span>'|safe }}</td>
