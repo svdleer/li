@@ -33,6 +33,7 @@ class EmailNotifier:
         self.smtp_use_tls = os.getenv('SMTP_USE_TLS', 'true').lower() == 'true'
         
         self.from_email = os.getenv('EMAIL_FROM', self.smtp_user)
+        self.from_name = os.getenv('EMAIL_FROM_NAME', 'EVE LI XML Generator')
         self.to_emails = os.getenv('EMAIL_TO', '').split(',')
         self.to_emails = [e.strip() for e in self.to_emails if e.strip()]
         
@@ -53,7 +54,7 @@ class EmailNotifier:
         try:
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
-            msg['From'] = self.from_email
+            msg['From'] = f"{self.from_name} <{self.from_email}>"
             msg['To'] = ', '.join(self.to_emails)
             
             # Add plain text version as fallback
