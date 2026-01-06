@@ -68,8 +68,8 @@ class EmailNotifier:
             msg['Subject'] = subject
             msg['From'] = f"{self.from_name} <{self.from_email}>"
             msg['To'] = ', '.join(self.to_emails)
-            
-            # Add plain text version as fallback
+                        logger.info(f"Email headers - From: {msg['From']}, To: {msg['To']}")
+                        # Add plain text version as fallback
             if text_body:
                 msg.attach(MIMEText(text_body, 'plain'))
             
@@ -81,8 +81,11 @@ class EmailNotifier:
                 if self.smtp_use_tls:
                     server.starttls()
                 if self.smtp_user and self.smtp_password:
-                    server.login(self.smtp_user, self.smtp_password)
-                server.send_message(msg)
+                    server.login(self.smtp_user, self.smtp_password)                
+                # Log what we're actually sending
+                logger.info(f"Connecting to SMTP: {self.smtp_host}:{self.smtp_port}")
+                logger.info(f"Sending message from {self.from_email} to {recipients}")
+                                server.send_message(msg)
             
             logger.info(f"Email sent to {len(self.to_emails)} recipient(s)")
             return True
