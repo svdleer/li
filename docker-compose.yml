@@ -61,7 +61,8 @@ services:
       - HTTP_PROXY=http://proxy.oss.local:8080
       - HTTPS_PROXY=http://proxy.oss.local:8080
       - http_proxy=http://proxy.oss.local:8080
-      - https_proxy=http://proxy.oss.loc
+      - https_proxy=http://proxy.oss.local:8080
+      # Set timezone
       - TZ=Europe/Amsterdam
       # Bypass proxy for internal hosts
       - NO_PROXY=localhost,127.0.0.1,.oss.local,netshot.oss.local
