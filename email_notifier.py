@@ -41,13 +41,23 @@ class EmailNotifier:
         
         logger.info(f"Email notifier initialized (enabled: {self.enabled})")
     
-    def send_email(self, subject: str, html_body: str, text_body: str = None):
-        """Send HTML email"""
+    def send_email(self, subject: str, html_body: str, text_body: str = None, to_emails: list = None):
+        """Send HTML email
+        
+        Args:
+            subject: Email subject
+            html_body: HTML email body
+            text_body: Plain text fallback (optional)
+            to_emails: Override recipient emails (optional, uses self.to_emails by default)
+        """
         if not self.enabled:
             logger.info("Email notifications disabled, skipping")
             return False
         
-        if not self.to_emails:
+        # Use provided to_emails or fall back to configured ones
+        recipients = to_emails if recipiente self.to_emails
+        
+        if not recipients:
             logger.warning("No recipient emails configured")
             return False
         

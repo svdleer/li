@@ -453,7 +453,8 @@ def forgot_password_submit():
             notifier.send_email(
                 subject="Password Reset Request - EVE LI XML Generator",
                 html_body=html_body,
-                text_body=text_body
+                text_body=text_body,
+                to_emails=[email]  # Send to the user requesting the reset
             )
     
     # Always show success message (security: don't reveal if email exists)
