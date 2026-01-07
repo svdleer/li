@@ -317,12 +317,28 @@ class DHCPDatabase:
         return None
     
     def save_dhcp_validation(self, device_name, validation_result):
-        """Save DHCP validation result to MySQL cache"""
+        """Save DHCP validation result to MySQL cache with robustness check"""
         if not self.connection:
             return False
         
         try:
             import json
+            
+            # Check existing cached data to prevent updates with fewer scopes (likely transient issues)
+            existing = self.get_cached_dhcp_validation(device_name)
+            new_scope_count = validation_result.get('dhcp_scopes_count', 0)
+            
+            if existing:
+                old_scope_count = existing.get('dhcp_scopes_count', 0)
+                # Only update if new count is at least as good, or within acceptable tolerance (1 scope)
+                if new_scope_count < old_scope_count - 1:
+                    logger.warning(
+                        f"Skipping cache update for {device_name}: "
+                        f"new scope count ({new_scope_count}) is significantly less than cached ({old_scope_count}). "
+                        f"This may indicate a transient DHCP database issue."
+                    )
+                    return False
+            
             with self.connection.cursor() as cursor:
                 query = f"""
                     INSERT INTO {self.cache_database}.dhcp_validation_cache 
