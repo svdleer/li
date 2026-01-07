@@ -224,6 +224,9 @@ class DHCPDatabase:
         result['dhcp_scopes_count'] = ipv4_count + ipv6_count
         result['has_dhcp'] = result['dhcp_scopes_count'] > 0
         
+        # Mark devices with only 1 scope as potentially incomplete (needs retry)
+        result['needs_retry'] = result['dhcp_scopes_count'] == 1
+        
         # Validate IPv4
         if not result['has_dhcp']:
             result['missing_in_dhcp'] = public_ipv4_subnets
