@@ -326,14 +326,17 @@ class DHCPDatabase:
             with self.connection.cursor() as cursor:
                 query = f"""
                     INSERT INTO {self.cache_database}.dhcp_validation_cache 
-                    (device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                    (device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched, 
+                     ipv6_missing_in_dhcp, ipv6_matched, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON DUPLICATE KEY UPDATE
                     dhcp_hostname = VALUES(dhcp_hostname),
                     has_dhcp = VALUES(has_dhcp),
                     dhcp_scopes_count = VALUES(dhcp_scopes_count),
                     missing_in_dhcp = VALUES(missing_in_dhcp),
                     matched = VALUES(matched),
+                    ipv6_missing_in_dhcp = VALUES(ipv6_missing_in_dhcp),
+                    ipv6_matched = VALUES(ipv6_matched),
                     updated_at = NOW()
                 """
                 cursor.execute(query, (
@@ -342,7 +345,9 @@ class DHCPDatabase:
                     validation_result.get('has_dhcp', False),
                     validation_result.get('dhcp_scopes_count', 0),
                     json.dumps(validation_result.get('missing_in_dhcp', [])),
-                    json.dumps(validation_result.get('matched', []))
+                    json.dumps(validation_result.get('matched', [])),
+                    json.dumps(validation_result.get('ipv6_missing_in_dhcp', [])),
+                    json.dumps(validation_result.get('ipv6_matched', []))
                 ))
                 self.connection.commit()
                 return True

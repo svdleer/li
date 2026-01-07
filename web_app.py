@@ -1599,7 +1599,9 @@ def devices():
                     # Fetch all device validations from dhcp_validation_cache table in one query
                     cursor = dhcp_db.connection.cursor()
                     cursor.execute(
-                        f"SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched FROM {dhcp_db.cache_database}.dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+                        f"SELECT device_name, dhcp_hostname, has_dhcp, dhcp_scopes_count, missing_in_dhcp, matched, "
+                        f"ipv6_missing_in_dhcp, ipv6_matched "
+                        f"FROM {dhcp_db.cache_database}.dhcp_validation_cache WHERE updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"
                     )
                     validation_rows = cursor.fetchall()
                     cursor.close()
@@ -1610,7 +1612,9 @@ def devices():
                                 'has_dhcp': bool(row['has_dhcp']),
                                 'dhcp_scopes_count': row['dhcp_scopes_count'],
                                 'missing_in_dhcp': json.loads(row['missing_in_dhcp']) if row['missing_in_dhcp'] else [],
-                                'matched': json.loads(row['matched']) if row['matched'] else []
+                                'matched': json.loads(row['matched']) if row['matched'] else [],
+                                'ipv6_missing_in_dhcp': json.loads(row['ipv6_missing_in_dhcp']) if row.get('ipv6_missing_in_dhcp') else [],
+                                'ipv6_matched': json.loads(row['ipv6_matched']) if row.get('ipv6_matched') else []
                             }
                     
                     logger.info(f"Loaded DHCP validation for {len(validation_cache)} devices from cache")
