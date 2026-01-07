@@ -95,7 +95,7 @@ case "$1" in
     
     # Pull latest code
     echo_info "Pulling latest code from git..."
-    ssh_remote "export http_proxy='http://proxy.ext.oss.local:8080' && export https_proxy='http://proxy.ext.oss.local:8080' && cd ${REMOTE_DEPLOY_DIR} && git pull origin ${GIT_BRANCH}" || {
+    ssh_remote "cd ${REMOTE_DEPLOY_DIR} && git config http.proxy http://proxy.ext.oss.local:8080 && git config https.proxy http://proxy.ext.oss.local:8080 && git pull origin ${GIT_BRANCH}" || {
         echo_error "Failed to pull latest code!"
         exit 1
     }
