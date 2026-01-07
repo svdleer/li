@@ -221,11 +221,47 @@ class DHCPDatabase:
         # Count both IPv4 and IPv6 scopes (excluding primary and IPv6 duplicates)
         ipv4_count = len(public_dhcp_scopes)
         ipv6_count = len(unique_ipv6_scopes)
+        scope_count = ipv4_count + ipv6_count
+        
+        # If we got 0 or 1 scopes, retry the query once
+        if scope_count <= 1:
+            logger.info(f"Device {device_name} has {scope_count} scope(s), retrying query...")
+            import time
+            time.sleep(0.5)  # Brief pause before retry
+            
+            # Retry IPv4 query
+            dhcp_scopes_retry = self.get_scopes_by_primary(primary_subnet)
+            public_dhcp_scopes_retry = [s for s in dhcp_scopes_retry if is_public_ipv4(s['scope']) and s['scope'] != primary_subnet]
+            
+            # Retry IPv6 query
+            dhcp_ipv6_scopes_retry = self.get_ipv6_scopes_by_hostname(device_name)
+            unique_ipv6_scopes_retry = []
+            seen_prefixes_retry = set()
+            for scope in dhcp_ipv6_scopes_retry:
+                prefix = scope['prefixname']
+                base_prefix = prefix.replace('-PD', '') if prefix.endswith('-PD') else prefix
+                if base_prefix not in seen_prefixes_retry:
+                    seen_prefixes_retry.add(base_prefix)
+                    unique_ipv6_scopes_retry.append(scope)
+            
+            retry_count = len(public_dhcp_scopes_retry) + len(unique_ipv6_scopes_retry)
+            
+            # Use retry results if they're better
+            if retry_count > scope_count:
+                logger.info(f"Retry successful: {device_name} now has {retry_count} scopes")
+                dhcp_scopes = dhcp_scopes_retry
+                public_dhcp_scopes = public_dhcp_scopes_retry
+                dhcp_ipv6_scopes = dhcp_ipv6_scopes_retry
+                unique_ipv6_scopes = unique_ipv6_scopes_retry
+                result['dhcp_scopes'] = dhcp_scopes
+                result['dhcp_ipv6_scopes'] = dhcp_ipv6_scopes
+                ipv4_count = len(public_dhcp_scopes)
+                ipv6_count = len(unique_ipv6_scopes)
+            else:
+                logger.info(f"Retry did not improve results for {device_name}")
+        
         result['dhcp_scopes_count'] = ipv4_count + ipv6_count
         result['has_dhcp'] = result['dhcp_scopes_count'] > 0
-        
-        # Mark devices with only 1 scope as potentially incomplete (needs retry)
-        result['needs_retry'] = result['dhcp_scopes_count'] == 1
         
         # Validate IPv4
         if not result['has_dhcp']:
