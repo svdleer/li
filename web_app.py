@@ -103,9 +103,21 @@ mysql_user = os.getenv('MYSQL_USER', 'root')
 mysql_password = os.getenv('MYSQL_PASSWORD', '')
 mysql_database = os.getenv('MYSQL_DATABASE', 'dhcp_validation_cache')
 
-mysql_url = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}'
+mysql_url = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_database}?charset=utf8mb4'
+
+# Configure connection pool with proper timeout handling
+engine_options = {
+    'pool_pre_ping': True,  # Test connections before using them
+    'pool_recycle': 3600,   # Recycle connections after 1 hour
+    'pool_size': 5,
+    'max_overflow': 10,
+    'connect_args': {
+        'connect_timeout': 10
+    }
+}
+
 jobstores = {
-    'default': SQLAlchemyJobStore(url=mysql_url)
+    'default': SQLAlchemyJobStore(url=mysql_url, engine_options=engine_options)
 }
 task_scheduler = BackgroundScheduler(jobstores=jobstores, timezone=pytz.UTC)
 task_scheduler.start()
