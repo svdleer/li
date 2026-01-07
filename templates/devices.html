@@ -523,6 +523,26 @@ document.querySelectorAll('.refresh-device').forEach(button => {
         icon.classList.add('fa-spin');
         this.disabled = true;
         
+        // Show page-level loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'refresh-loading-overlay';
+        loadingDiv.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+        loadingDiv.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        loadingDiv.style.zIndex = '9999';
+        loadingDiv.innerHTML = `
+            <div class="card text-center p-4 shadow-lg">
+                <div class="card-body">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Refreshing...</span>
+                    </div>
+                    <h5>Refreshing Device Data</h5>
+                    <p class="text-muted mb-0">Please wait while we fetch the latest data from Netshot and DHCP...</p>
+                    <small class="text-muted">Device: ${deviceName}</small>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loadingDiv);
+        
         // Call refresh endpoint
         fetch(`devices/refresh/${deviceName}`, {
             method: 'POST',
@@ -532,6 +552,7 @@ document.querySelectorAll('.refresh-device').forEach(button => {
         })
         .then(response => response.json())
         .then(data => {
+            document.getElementById('refresh-loading-overlay')?.remove();
             if (data.success) {
                 // Show success message and reload page
                 alert(`✓ Cache cleared for ${deviceName}. Page will reload.`);
@@ -543,6 +564,7 @@ document.querySelectorAll('.refresh-device').forEach(button => {
             }
         })
         .catch(error => {
+            document.getElementById('refresh-loading-overlay')?.remove();
             alert(`Error refreshing device: ${error}`);
             icon.classList.remove('fa-spin');
             this.disabled = false;
