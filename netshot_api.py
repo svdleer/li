@@ -376,7 +376,7 @@ class NetshotAPI:
         """
         try:
             # Get diagnostics for the device
-            response = self._make_request(f'devices/{device_id}/diagnostics')
+            response = self._make_request(f'devices/{device_id}/diagnosticresults')
             if not response:
                 return None
             
@@ -943,7 +943,7 @@ class NetshotAPI:
             self.logger.debug(f"Fetching diagnostic '{diagnostic_name}' for device ID {device_id}")
             
             # Get all diagnostics for the device
-            response = self._make_request(f'devices/{device_id}/diagnostics')
+            response = self._make_request(f'devices/{device_id}/diagnosticresults')
             
             if response is None:
                 return None
