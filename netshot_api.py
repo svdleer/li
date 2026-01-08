@@ -668,7 +668,7 @@ class NetshotAPI:
     
     def get_pe_devices(self, force_refresh: bool = False) -> List[Dict]:
         """
-        Get all PE (Provider Edge) devices from device group 205 with lawfulInterception config
+        Get all PE (Provider Edge) devices from device group 275 with lawfulInterception config
         
         Args:
             force_refresh: Force refresh from API, bypass cache
@@ -685,16 +685,16 @@ class NetshotAPI:
                     self.logger.info(f"Using cached PE devices: {len(cached)} devices")
                     return cached
             
-            self.logger.info("Fetching PE devices from Netshot group 205")
+            self.logger.info("Fetching PE devices from Netshot group 275")
             
-            # Get device list from group 205
-            response = self._make_request('devices', params={'group': 205})
+            # Get device list from group 275
+            response = self._make_request('devices', params={'group': 275})
             if not response:
-                self.logger.warning("No response from Netshot API for device group 205")
+                self.logger.warning("No response from Netshot API for device group 275")
                 return []
             
             device_list = response if isinstance(response, list) else []
-            self.logger.info(f"Retrieved {len(device_list)} devices from group 205")
+            self.logger.info(f"Retrieved {len(device_list)} devices from group 275")
             
             # Get full details for each device
             pe_devices = []
