@@ -45,6 +45,7 @@ services:
       - FLASK_PORT=8502
       # Point to Mac host for tunneled services
       - NETSHOT_API_URL=https://netshot.oss.local/api
+      - NETSHOT_API_KEY=CWuoygkAW7IVNrPxycNy3omca5m3ahib
       - MYSQL_HOST=host.docker.internal
       # Email configuration
       - EMAIL_ENABLED=true
