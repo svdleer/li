@@ -56,12 +56,14 @@ class NetshotAPI:
             config_mgr = get_config_manager()
             self.base_url = base_url or config_mgr.get_setting('netshot_url') or os.getenv('NETSHOT_API_URL', '')
             self.api_key = api_key or config_mgr.get_setting('netshot_api_key') or os.getenv('NETSHOT_API_KEY', '')
+            self.pe_device_group = int(config_mgr.get_setting('netshot_pe_group') or os.getenv('NETSHOT_PE_GROUP', '275'))
             if not self.base_url:
                 logging.warning("Netshot URL not configured. Please configure in application settings.")
         except Exception as e:
             logging.warning(f"Could not load from ConfigManager: {e}")
             self.base_url = base_url or os.getenv('NETSHOT_API_URL', '')
             self.api_key = api_key or os.getenv('NETSHOT_API_KEY', '')
+            self.pe_device_group = int(os.getenv('NETSHOT_PE_GROUP', '275'))
         
         self.username = username or os.getenv('NETSHOT_USERNAME', '')
         self.password = password or os.getenv('NETSHOT_PASSWORD', '')
@@ -685,16 +687,16 @@ class NetshotAPI:
                     self.logger.info(f"Using cached PE devices: {len(cached)} devices")
                     return cached
             
-            self.logger.info("Fetching PE devices from Netshot group 275")
+            self.logger.info(f"Fetching PE devices from Netshot group {self.pe_device_group}")
             
-            # Get device list from group 275
-            response = self._make_request('devices', params={'group': 275})
+            # Get device list from configured group
+            response = self._make_request('devices', params={'group': self.pe_device_group})
             if not response:
-                self.logger.warning("No response from Netshot API for device group 275")
+                self.logger.warning(f"No response from Netshot API for device group {self.pe_device_group}")
                 return []
             
             device_list = response if isinstance(response, list) else []
-            self.logger.info(f"Retrieved {len(device_list)} devices from group 275")
+            self.logger.info(f"Retrieved {len(device_list)} devices from group {self.pe_device_group}")
             
             # Get full details for each device
             pe_devices = []
