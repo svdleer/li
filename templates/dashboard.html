@@ -62,8 +62,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title">Public Subnets</h6>
+                        <h6 class="card-title">Total Public Subnets</h6>
                         <h2 class="mb-0">{{ stats.public_subnets or 0 }}</h2>
+                        <small>CMTS: {{ stats.cmts_subnets or 0 }} | PE: {{ stats.pe_subnets or 0 }}</small>
                     </div>
                     <i class="bi bi-globe display-4 opacity-50"></i>
                 </div>
@@ -341,8 +342,8 @@ function generateXML(mode) {
     .then(data => {
         modal.hide();
         if (data.success) {
-            alert('XML generation completed successfully!');
-            location.reload();
+            alert('XML generation completed successfully! Page will update automatically.');
+            // Don't reload - let user manually refresh if needed
         } else {
             alert('Error: ' + data.message);
         }

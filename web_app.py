@@ -1350,23 +1350,34 @@ def dashboard():
                         and 'VCAS' not in d.get('name', '').upper()]
         pe_filtered = [d for d in pe_devices if d.get('name') != '[NONAME]']
         
-        # Count public subnets
+        # Count public subnets separately for CMTS and PE
         from subnet_utils import is_public_ipv4, is_public_ipv6
-        total_public_subnets = 0
+        cmts_public_subnets = 0
+        pe_public_subnets = 0
         devices_with_dhcp = 0
         devices_with_loopback = 0
         
+        # Count CMTS subnets
         for device in cmts_filtered:
             subnets = device.get('subnets', [])
             primary = device.get('primary_subnet')
             public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
             public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
-            total_public_subnets += len(public_ipv4) + len(public_ipv6)
+            cmts_public_subnets += len(public_ipv4) + len(public_ipv6)
             
             if device.get('dhcp_validation', {}).get('has_dhcp'):
                 devices_with_dhcp += 1
             if device.get('loopback'):
                 devices_with_loopback += 1
+        
+        # Count PE subnets
+        for device in pe_filtered:
+            subnets = device.get('subnets', [])
+            public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
+            public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+            pe_public_subnets += len(public_ipv4) + len(public_ipv6)
+        
+        total_public_subnets = cmts_public_subnets + pe_public_subnets
         
         # Get recent XML files
         output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
@@ -1411,6 +1422,8 @@ def dashboard():
             'pe_count': len(pe_filtered),
             'total_devices': len(cmts_filtered) + len(pe_filtered),
             'public_subnets': total_public_subnets,
+            'cmts_subnets': cmts_public_subnets,
+            'pe_subnets': pe_public_subnets,
             'devices_with_dhcp': devices_with_dhcp,
             'devices_with_loopback': devices_with_loopback,
             'recent_files': recent_files,
