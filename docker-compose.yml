@@ -109,6 +109,37 @@ services:
     profiles:
       - demo
 
+  # Redis Cache (optional, provides significant performance boost)
+  redis:
+    image: redis:7-alpine
+    container_name: eve-li-redis
+    restart: unless-stopped
+    
+    # Port mapping
+    ports:
+      - "6379:6379"
+    
+    # Persistent storage for cache
+    volumes:
+      - redis-data:/data
+    
+    # Redis configuration for better performance
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  redis-data:
+
 # Optional: Nginx Reverse Proxy for production with SSL
 # Uncomment if you want to use Nginx in front of Flask
 #  nginx:

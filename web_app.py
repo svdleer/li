@@ -1565,9 +1565,11 @@ def refresh_device(device_name):
 @app.route("/devices")
 @login_required
 def devices():
-    """Device list page - load data server-side"""
+    """Device list page - load data server-side with pagination"""
     device_type = request.args.get('type', 'cmts')  # Default to CMTS only
     force_refresh = request.args.get('refresh', 'false').lower() == 'true'
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 50))  # Show 50 devices per page
     
     try:
         netshot_client = get_netshot_client()
@@ -1579,6 +1581,8 @@ def devices():
         
         cmts_devices = []
         pe_devices = []
+        total_cmts = 0
+        total_pe = 0
         
         if device_type in ['all', 'cmts']:
             import concurrent.futures
@@ -1592,7 +1596,13 @@ def devices():
                            if d.get('name') != '[NONAME]' 
                            and d.get('oss10_hostname') != '[NONAME]'
                            and 'VCAS' not in d.get('name', '').upper()]
-            cmts_devices = sorted(filtered_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            sorted_cmts = sorted(filtered_cmts, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            
+            # Pagination
+            total_cmts = len(sorted_cmts)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            cmts_devices = sorted_cmts[start_idx:end_idx]
             
             # Add DHCP validation from MySQL cache (batch fetch for performance)
             try:
@@ -1655,13 +1665,29 @@ def devices():
             all_pe = netshot_client.get_pe_devices(force_refresh)
             # Filter out [NONAME] devices
             filtered_pe = [d for d in all_pe if d.get('name') != '[NONAME]' and d.get('oss10_hostname') != '[NONAME]']
-            pe_devices = sorted(filtered_pe, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            sorted_pe = sorted(filtered_pe, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
+            
+            # Pagination for PE devices
+            total_pe = len(sorted_pe)
+            start_idx = (page - 1) * per_page
+            end_idx = start_idx + per_page
+            pe_devices = sorted_pe[start_idx:end_idx]
+        
+        # Calculate pagination info
+        total_devices = total_cmts if device_type == 'cmts' else (total_pe if device_type == 'pe' else total_cmts + total_pe)
+        total_pages = (total_devices + per_page - 1) // per_page if total_devices > 0 else 1
         
         return render_template("devices.html",
                              user=session.get("user"),
                              cmts_devices=cmts_devices,
                              pe_devices=pe_devices,
                              device_type=device_type,
+                             page=page,
+                             per_page=per_page,
+                             total_pages=total_pages,
+                             total_devices=total_devices,
+                             total_cmts=total_cmts,
+                             total_pe=total_pe,
                              app_title=APP_TITLE)
                              
     except Exception as e:

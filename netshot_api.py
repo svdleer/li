@@ -25,7 +25,7 @@ from requests.auth import HTTPBasicAuth
 import urllib3
 
 # Import cache manager
-from cache_manager import CacheManager, get_cache_manager
+from cache_manager import CacheManager, RedisCache, get_cache_manager
 
 # Disable SSL warnings for internal APIs
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -71,13 +71,21 @@ class NetshotAPI:
         self.verify_ssl = verify_ssl
         self.logger = logging.getLogger('netshot_api')
         
-        # Initialize cache
+        # Initialize cache (try Redis first, fallback to file cache)
         self.use_cache = use_cache and os.getenv('CACHE_ENABLED', 'true').lower() == 'true'
         if self.use_cache:
             cache_dir = os.getenv('CACHE_DIR', '.cache')
             ttl = cache_ttl or int(os.getenv('CACHE_TTL', '86400'))  # 24 hours default
-            self.cache = CacheManager(cache_dir=cache_dir, default_ttl=ttl)
-            self.logger.info(f"Caching enabled: TTL={ttl}s, dir={cache_dir}")
+            redis_url = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+            
+            # Try Redis first, will auto-fallback to file cache if unavailable
+            try:
+                self.cache = RedisCache(redis_url=redis_url, default_ttl=ttl)
+                self.logger.info(f"Cache initialized: TTL={ttl}s")
+            except Exception as e:
+                self.logger.warning(f"Redis init failed, using file cache: {e}")
+                self.cache = CacheManager(cache_dir=cache_dir, default_ttl=ttl)
+                self.logger.info(f"File caching enabled: TTL={ttl}s, dir={cache_dir}")
         else:
             self.cache = None
             self.logger.info("Caching disabled")

@@ -408,6 +408,65 @@
 </div>
 {% endif %}
 
+<!-- Pagination Controls -->
+{% if total_pages and total_pages > 1 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Device pagination">
+            <ul class="pagination justify-content-center">
+                <!-- Previous Button -->
+                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                    <a class="page-link" href="?type={{ device_type }}&page={{ page - 1 }}&per_page={{ per_page }}" {% if page <= 1 %}tabindex="-1" aria-disabled="true"{% endif %}>
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                </li>
+                
+                <!-- Page Numbers -->
+                {% set start_page = [1, page - 2]|max %}
+                {% set end_page = [total_pages, page + 2]|min %}
+                
+                {% if start_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?type={{ device_type }}&page=1&per_page={{ per_page }}">1</a>
+                    </li>
+                    {% if start_page > 2 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endif %}
+                
+                {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="?type={{ device_type }}&page={{ p }}&per_page={{ per_page }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+                
+                {% if end_page < total_pages %}
+                    {% if end_page < total_pages - 1 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="?type={{ device_type }}&page={{ total_pages }}&per_page={{ per_page }}">{{ total_pages }}</a>
+                    </li>
+                {% endif %}
+                
+                <!-- Next Button -->
+                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="?type={{ device_type }}&page={{ page + 1 }}&per_page={{ per_page }}" {% if page >= total_pages %}tabindex="-1" aria-disabled="true"{% endif %}>
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Device Count Info -->
+        <div class="text-center text-muted small">
+            Showing {{ ((page - 1) * per_page) + 1 }} - {{ [page * per_page, total_devices]|min }} of {{ total_devices }} devices
+            {% if device_type == 'all' %}({{ total_cmts }} CMTS + {{ total_pe }} PE){% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if not cmts_devices and not pe_devices %}
 <div class="alert alert-info">
     <i class="bi bi-info-circle"></i> No devices found. Check your Netshot connection.

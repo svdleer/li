@@ -3,18 +3,19 @@
 Cache Manager Module
 ====================
 
-Provides file-based caching with TTL management for Netshot API data.
-Docker-compatible with persistent volume support.
+Provides caching with TTL management for Netshot API data with Redis support.
+Falls back to file-based cache if Redis is unavailable.
 
 Features:
-- File-based JSON caching
+- Redis in-memory caching (primary)
+- File-based JSON caching (fallback)
 - TTL (Time To Live) expiration
 - Thread-safe operations
 - Docker volume compatible
 - Cache statistics and monitoring
 
 Author: Silvester van der Leer
-Version: 1.0
+Version: 2.0
 """
 
 import os
@@ -27,6 +28,120 @@ from typing import Any, Optional, Dict, List, Callable
 from functools import wraps
 import threading
 import hashlib
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+
+
+class RedisCache:
+    """Redis-based cache with automatic fallback to file cache"""
+    
+    def __init__(self, redis_url: str = 'redis://localhost:6379/0', default_ttl: int = 86400):
+        """
+        Initialize Redis cache
+        
+        Args:
+            redis_url: Redis connection URL
+            default_ttl: Default TTL in seconds (default: 24 hours)
+        """
+        self.default_ttl = default_ttl
+        self.logger = logging.getLogger('redis_cache')
+        self._redis = None
+        self._use_redis = False
+        
+        if REDIS_AVAILABLE:
+            try:
+                self._redis = redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=2)
+                # Test connection
+                self._redis.ping()
+                self._use_redis = True
+                self.logger.info(f"Redis cache initialized: {redis_url}")
+            except Exception as e:
+                self.logger.warning(f"Redis not available, using file cache: {e}")
+        else:
+            self.logger.warning("Redis module not installed, using file cache")
+        
+        # Fallback to file cache
+        if not self._use_redis:
+            self._file_cache = CacheManager(default_ttl=default_ttl)
+            self.logger.info("Using file-based cache as fallback")
+    
+    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """Store value in cache"""
+        if self._use_redis:
+            try:
+                ttl = ttl or self.default_ttl
+                serialized = json.dumps(value)
+                self._redis.setex(key, ttl, serialized)
+                return True
+            except Exception as e:
+                self.logger.error(f"Redis set error: {e}")
+                return False
+        else:
+            return self._file_cache.set(key, value, ttl)
+    
+    def get(self, key: str) -> Optional[Any]:
+        """Retrieve value from cache"""
+        if self._use_redis:
+            try:
+                value = self._redis.get(key)
+                if value is not None:
+                    return json.loads(value)
+                return None
+            except Exception as e:
+                self.logger.error(f"Redis get error: {e}")
+                return None
+        else:
+            return self._file_cache.get(key)
+    
+    def delete(self, key: str) -> bool:
+        """Delete value from cache"""
+        if self._use_redis:
+            try:
+                self._redis.delete(key)
+                return True
+            except Exception as e:
+                self.logger.error(f"Redis delete error: {e}")
+                return False
+        else:
+            return self._file_cache.delete(key)
+    
+    def clear_pattern(self, pattern: str) -> int:
+        """Clear all keys matching pattern"""
+        if self._use_redis:
+            try:
+                keys = self._redis.keys(pattern)
+                if keys:
+                    return self._redis.delete(*keys)
+                return 0
+            except Exception as e:
+                self.logger.error(f"Redis clear_pattern error: {e}")
+                return 0
+        else:
+            return self._file_cache.clear_pattern(pattern)
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics"""
+        if self._use_redis:
+            try:
+                info = self._redis.info('stats')
+                return {
+                    'backend': 'redis',
+                    'total_keys': self._redis.dbsize(),
+                    'hits': info.get('keyspace_hits', 0),
+                    'misses': info.get('keyspace_misses', 0),
+                    'memory_used': info.get('used_memory_human', 'N/A')
+                }
+            except Exception as e:
+                self.logger.error(f"Redis stats error: {e}")
+                return {'backend': 'redis', 'error': str(e)}
+        else:
+            stats = self._file_cache.get_stats()
+            stats['backend'] = 'file'
+            return stats
 
 
 class CacheManager:
