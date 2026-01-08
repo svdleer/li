@@ -426,6 +426,7 @@ class NetshotAPI:
         
         try:
             # First, check if this is a Nokia device by checking diagnostics
+            self.logger.info(f"Checking Nokia diagnostic for device {device_id} ({device_name})")
             nokia_loopback = self._get_nokia_loopback_from_diagnostic(device_id, device_name)
             if nokia_loopback:
                 # Cache and return Nokia diagnostic result
