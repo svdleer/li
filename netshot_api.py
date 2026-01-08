@@ -404,7 +404,7 @@ class NetshotAPI:
             self.logger.error(f"Error getting Nokia diagnostic for device {device_id}: {e}")
             return None
     
-    def get_loopback_interface(self, device_id: int, device_name: str = None, force_refresh: bool = False) -> Optional[str]:
+    def get_loopback_interface(self, device_id: int, device_name: str = None, force_refresh: bool = False, device_family: str = None) -> Optional[str]:
         """
         Get the loopback interface IP address for a device
         
@@ -426,13 +426,16 @@ class NetshotAPI:
         
         try:
             # First, check if this is a Nokia device by checking diagnostics
-            self.logger.info(f"Checking Nokia diagnostic for device {device_id} ({device_name})")
-            nokia_loopback = self._get_nokia_loopback_from_diagnostic(device_id, device_name)
-            if nokia_loopback:
-                # Cache and return Nokia diagnostic result
-                if self.use_cache:
-                    self.cache.set(cache_key, nokia_loopback)
-                return nokia_loopback
+            # Only check Nokia diagnostic for Nokia devices to avoid unnecessary API calls
+            is_nokia = (device_family and 'nokia' in device_family.lower()) or (device_name and 'nokia' in device_name.lower())
+            if is_nokia:
+                self.logger.info(f"Checking Nokia diagnostic for device {device_id} ({device_name})")
+                nokia_loopback = self._get_nokia_loopback_from_diagnostic(device_id, device_name)
+                if nokia_loopback:
+                    # Cache and return Nokia diagnostic result
+                    if self.use_cache:
+                        self.cache.set(cache_key, nokia_loopback)
+                    return nokia_loopback
             
             # Fall back to interface parsing for non-Nokia or if diagnostic not available
             interfaces = self.get_device_interfaces(device_id, force_refresh=force_refresh)
@@ -771,12 +774,13 @@ class NetshotAPI:
                     continue
                 
                 device_name = device.get('name', 'unknown')
+                device_family = device.get('family', '')
                 
                 # Set device type
-                device['device_type'] = device.get('family') or 'PE Router'
+                device['device_type'] = device_family or 'PE Router'
                 
-                # Get loopback interface
-                device['loopback'] = self.get_loopback_interface(device_id, device_name)
+                # Get loopback interface (pass family to optimize Nokia diagnostic check)
+                device['loopback'] = self.get_loopback_interface(device_id, device_name, device_family=device_family)
                 
                 # Get lawfulInterception config (optional - not all PE devices have it)
                 lawful_config = self.get_device_config(device_id, 'lawfulInterception')
