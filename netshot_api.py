@@ -384,8 +384,8 @@ class NetshotAPI:
             
             # Look for NOKIA_LI_INT diagnostic
             for diag in diagnostics:
-                if diag.get('name') == 'NOKIA_LI_INT':
-                    result_text = diag.get('result', '{}')
+                if diag.get('diagnosticName') == 'NOKIA_LI_INT':
+                    result_text = diag.get('text', '{}')
                     try:
                         import json
                         result = json.loads(result_text)
