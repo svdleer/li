@@ -729,6 +729,7 @@ def setup():
 
 
 @app.route("/")
+@login_required
 def index():
     """Home page / Dashboard"""
     # Check if app needs setup
