@@ -1,7 +1,7 @@
 {
   "value": [
     {
-      "id": 269925113,
+      "id": 272523520,
       "interfaceName": "Loopback1",
       "ip4Addresses": [
         {
@@ -19,7 +19,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269925114,
+      "id": 272523521,
       "interfaceName": "Port-channel1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -31,7 +31,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925115,
+      "id": 272523522,
       "interfaceName": "Port-channel1.2842",
       "ip4Addresses": [
         {
@@ -49,7 +49,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925116,
+      "id": 272523523,
       "interfaceName": "Port-channel1.2843",
       "ip4Addresses": [
         {
@@ -67,7 +67,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925117,
+      "id": 272523524,
       "interfaceName": "Port-channel1.2844",
       "ip4Addresses": [
         {
@@ -85,7 +85,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925118,
+      "id": 272523525,
       "interfaceName": "Port-channel1.2845",
       "ip4Addresses": [
         {
@@ -103,7 +103,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925119,
+      "id": 272523526,
       "interfaceName": "Port-channel1.2846",
       "ip4Addresses": [
         {
@@ -121,7 +121,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925120,
+      "id": 272523527,
       "interfaceName": "Port-channel1.2847",
       "ip4Addresses": [
         {
@@ -139,7 +139,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925121,
+      "id": 272523528,
       "interfaceName": "Port-channel1.2848",
       "ip4Addresses": [
         {
@@ -157,7 +157,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925122,
+      "id": 272523529,
       "interfaceName": "Port-channel1.2849",
       "ip4Addresses": [
         {
@@ -175,7 +175,7 @@
       "macAddress": "a0c7.d27a.d9d9"
     },
     {
-      "id": 269925123,
+      "id": 272523530,
       "interfaceName": "GigabitEthernet0/0",
       "ip4Addresses": [
         {
@@ -193,7 +193,7 @@
       "macAddress": "a0c7.d27a.d980"
     },
     {
-      "id": 269925124,
+      "id": 272523531,
       "interfaceName": "GigabitEthernet1/0/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -205,7 +205,7 @@
       "macAddress": "a0c7.d27a.d981"
     },
     {
-      "id": 269925125,
+      "id": 272523532,
       "interfaceName": "GigabitEthernet1/0/2",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -217,7 +217,7 @@
       "macAddress": "a0c7.d27a.d982"
     },
     {
-      "id": 269925126,
+      "id": 272523533,
       "interfaceName": "GigabitEthernet1/0/3",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -229,7 +229,7 @@
       "macAddress": "a0c7.d27a.d983"
     },
     {
-      "id": 269925127,
+      "id": 272523534,
       "interfaceName": "GigabitEthernet1/0/4",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -241,7 +241,7 @@
       "macAddress": "a0c7.d27a.d984"
     },
     {
-      "id": 269925128,
+      "id": 272523535,
       "interfaceName": "GigabitEthernet1/0/5",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -253,7 +253,7 @@
       "macAddress": "a0c7.d27a.d985"
     },
     {
-      "id": 269925129,
+      "id": 272523536,
       "interfaceName": "GigabitEthernet1/0/6",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -265,7 +265,7 @@
       "macAddress": "a0c7.d27a.d986"
     },
     {
-      "id": 269925130,
+      "id": 272523537,
       "interfaceName": "GigabitEthernet1/0/7",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -277,7 +277,7 @@
       "macAddress": "a0c7.d27a.d987"
     },
     {
-      "id": 269925131,
+      "id": 272523538,
       "interfaceName": "GigabitEthernet1/0/8",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -289,7 +289,7 @@
       "macAddress": "a0c7.d27a.d988"
     },
     {
-      "id": 269925132,
+      "id": 272523539,
       "interfaceName": "GigabitEthernet1/0/9",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -301,7 +301,7 @@
       "macAddress": "a0c7.d27a.d989"
     },
     {
-      "id": 269925133,
+      "id": 272523540,
       "interfaceName": "GigabitEthernet1/0/10",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -313,7 +313,7 @@
       "macAddress": "a0c7.d27a.d98a"
     },
     {
-      "id": 269925134,
+      "id": 272523541,
       "interfaceName": "GigabitEthernet1/0/11",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -325,7 +325,7 @@
       "macAddress": "a0c7.d27a.d98b"
     },
     {
-      "id": 269925135,
+      "id": 272523542,
       "interfaceName": "GigabitEthernet1/0/12",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -337,7 +337,7 @@
       "macAddress": "a0c7.d27a.d98c"
     },
     {
-      "id": 269925136,
+      "id": 272523543,
       "interfaceName": "GigabitEthernet1/0/13",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -349,7 +349,7 @@
       "macAddress": "a0c7.d27a.d98d"
     },
     {
-      "id": 269925137,
+      "id": 272523544,
       "interfaceName": "GigabitEthernet1/0/14",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -361,7 +361,7 @@
       "macAddress": "a0c7.d27a.d98e"
     },
     {
-      "id": 269925138,
+      "id": 272523545,
       "interfaceName": "GigabitEthernet1/0/15",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -373,7 +373,7 @@
       "macAddress": "a0c7.d27a.d98f"
     },
     {
-      "id": 269925139,
+      "id": 272523546,
       "interfaceName": "GigabitEthernet1/0/16",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -385,7 +385,7 @@
       "macAddress": "a0c7.d27a.d990"
     },
     {
-      "id": 269925140,
+      "id": 272523547,
       "interfaceName": "GigabitEthernet1/0/17",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -397,7 +397,7 @@
       "macAddress": "a0c7.d27a.d991"
     },
     {
-      "id": 269925141,
+      "id": 272523548,
       "interfaceName": "GigabitEthernet1/0/18",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -409,7 +409,7 @@
       "macAddress": "a0c7.d27a.d992"
     },
     {
-      "id": 269925142,
+      "id": 272523549,
       "interfaceName": "GigabitEthernet1/0/19",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -421,7 +421,7 @@
       "macAddress": "a0c7.d27a.d993"
     },
     {
-      "id": 269925143,
+      "id": 272523550,
       "interfaceName": "GigabitEthernet1/0/20",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -433,7 +433,7 @@
       "macAddress": "a0c7.d27a.d994"
     },
     {
-      "id": 269925144,
+      "id": 272523551,
       "interfaceName": "GigabitEthernet1/0/21",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -445,7 +445,7 @@
       "macAddress": "a0c7.d27a.d995"
     },
     {
-      "id": 269925145,
+      "id": 272523552,
       "interfaceName": "GigabitEthernet1/0/22",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -457,7 +457,7 @@
       "macAddress": "a0c7.d27a.d996"
     },
     {
-      "id": 269925146,
+      "id": 272523553,
       "interfaceName": "GigabitEthernet1/0/23",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -469,7 +469,7 @@
       "macAddress": "a0c7.d27a.d997"
     },
     {
-      "id": 269925147,
+      "id": 272523554,
       "interfaceName": "GigabitEthernet1/0/24",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -481,7 +481,7 @@
       "macAddress": "a0c7.d27a.d998"
     },
     {
-      "id": 269925148,
+      "id": 272523555,
       "interfaceName": "TenGigabitEthernet1/1/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -493,7 +493,7 @@
       "macAddress": "a0c7.d27a.d9c6"
     },
     {
-      "id": 269925149,
+      "id": 272523556,
       "interfaceName": "TenGigabitEthernet1/1/2",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -505,7 +505,7 @@
       "macAddress": "a0c7.d27a.d99a"
     },
     {
-      "id": 269925150,
+      "id": 272523557,
       "interfaceName": "TenGigabitEthernet1/1/3",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -517,7 +517,7 @@
       "macAddress": "a0c7.d27a.d99b"
     },
     {
-      "id": 269925151,
+      "id": 272523558,
       "interfaceName": "TenGigabitEthernet1/1/4",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -529,7 +529,7 @@
       "macAddress": "a0c7.d27a.d9f4"
     },
     {
-      "id": 269925152,
+      "id": 272523559,
       "interfaceName": "AppGigabitEthernet1/0/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -541,7 +541,7 @@
       "macAddress": "a0c7.d27a.d99d"
     },
     {
-      "id": 269925153,
+      "id": 272523560,
       "interfaceName": "GigabitEthernet2/0/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -553,7 +553,7 @@
       "macAddress": "b4ca.ddf7.1381"
     },
     {
-      "id": 269925154,
+      "id": 272523561,
       "interfaceName": "GigabitEthernet2/0/2",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -565,7 +565,7 @@
       "macAddress": "b4ca.ddf7.1382"
     },
     {
-      "id": 269925155,
+      "id": 272523562,
       "interfaceName": "GigabitEthernet2/0/3",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -577,7 +577,7 @@
       "macAddress": "b4ca.ddf7.1383"
     },
     {
-      "id": 269925156,
+      "id": 272523563,
       "interfaceName": "GigabitEthernet2/0/4",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -589,7 +589,7 @@
       "macAddress": "b4ca.ddf7.1384"
     },
     {
-      "id": 269925157,
+      "id": 272523564,
       "interfaceName": "GigabitEthernet2/0/5",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -601,7 +601,7 @@
       "macAddress": "b4ca.ddf7.1385"
     },
     {
-      "id": 269925158,
+      "id": 272523565,
       "interfaceName": "GigabitEthernet2/0/6",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -613,7 +613,7 @@
       "macAddress": "b4ca.ddf7.1386"
     },
     {
-      "id": 269925159,
+      "id": 272523566,
       "interfaceName": "GigabitEthernet2/0/7",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -625,7 +625,7 @@
       "macAddress": "b4ca.ddf7.1387"
     },
     {
-      "id": 269925160,
+      "id": 272523567,
       "interfaceName": "GigabitEthernet2/0/8",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -637,7 +637,7 @@
       "macAddress": "b4ca.ddf7.1388"
     },
     {
-      "id": 269925161,
+      "id": 272523568,
       "interfaceName": "GigabitEthernet2/0/9",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -649,7 +649,7 @@
       "macAddress": "b4ca.ddf7.1389"
     },
     {
-      "id": 269925162,
+      "id": 272523569,
       "interfaceName": "GigabitEthernet2/0/10",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -661,7 +661,7 @@
       "macAddress": "b4ca.ddf7.138a"
     },
     {
-      "id": 269925163,
+      "id": 272523570,
       "interfaceName": "GigabitEthernet2/0/11",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -673,7 +673,7 @@
       "macAddress": "b4ca.ddf7.138b"
     },
     {
-      "id": 269925164,
+      "id": 272523571,
       "interfaceName": "GigabitEthernet2/0/12",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -685,7 +685,7 @@
       "macAddress": "b4ca.ddf7.138c"
     },
     {
-      "id": 269925165,
+      "id": 272523572,
       "interfaceName": "GigabitEthernet2/0/13",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -697,7 +697,7 @@
       "macAddress": "b4ca.ddf7.138d"
     },
     {
-      "id": 269925166,
+      "id": 272523573,
       "interfaceName": "GigabitEthernet2/0/14",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -709,7 +709,7 @@
       "macAddress": "b4ca.ddf7.138e"
     },
     {
-      "id": 269925167,
+      "id": 272523574,
       "interfaceName": "GigabitEthernet2/0/15",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -721,7 +721,7 @@
       "macAddress": "b4ca.ddf7.138f"
     },
     {
-      "id": 269925168,
+      "id": 272523575,
       "interfaceName": "GigabitEthernet2/0/16",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -733,7 +733,7 @@
       "macAddress": "b4ca.ddf7.1390"
     },
     {
-      "id": 269925169,
+      "id": 272523576,
       "interfaceName": "GigabitEthernet2/0/17",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -745,7 +745,7 @@
       "macAddress": "b4ca.ddf7.1391"
     },
     {
-      "id": 269925170,
+      "id": 272523577,
       "interfaceName": "GigabitEthernet2/0/18",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -757,7 +757,7 @@
       "macAddress": "b4ca.ddf7.1392"
     },
     {
-      "id": 269925171,
+      "id": 272523578,
       "interfaceName": "GigabitEthernet2/0/19",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -769,7 +769,7 @@
       "macAddress": "b4ca.ddf7.1393"
     },
     {
-      "id": 269925172,
+      "id": 272523579,
       "interfaceName": "GigabitEthernet2/0/20",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -781,7 +781,7 @@
       "macAddress": "b4ca.ddf7.1394"
     },
     {
-      "id": 269925173,
+      "id": 272523580,
       "interfaceName": "GigabitEthernet2/0/21",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -793,7 +793,7 @@
       "macAddress": "b4ca.ddf7.1395"
     },
     {
-      "id": 269925174,
+      "id": 272523581,
       "interfaceName": "GigabitEthernet2/0/22",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -805,7 +805,7 @@
       "macAddress": "b4ca.ddf7.1396"
     },
     {
-      "id": 269925175,
+      "id": 272523582,
       "interfaceName": "GigabitEthernet2/0/23",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -817,7 +817,7 @@
       "macAddress": "b4ca.ddf7.1397"
     },
     {
-      "id": 269925176,
+      "id": 272523583,
       "interfaceName": "GigabitEthernet2/0/24",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -829,7 +829,7 @@
       "macAddress": "b4ca.ddf7.1398"
     },
     {
-      "id": 269925177,
+      "id": 272523584,
       "interfaceName": "TenGigabitEthernet2/1/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -841,7 +841,7 @@
       "macAddress": "a0c7.d27a.d9e4"
     },
     {
-      "id": 269925178,
+      "id": 272523585,
       "interfaceName": "TenGigabitEthernet2/1/2",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -853,7 +853,7 @@
       "macAddress": "b4ca.ddf7.139a"
     },
     {
-      "id": 269925179,
+      "id": 272523586,
       "interfaceName": "TenGigabitEthernet2/1/3",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -865,7 +865,7 @@
       "macAddress": "b4ca.ddf7.139b"
     },
     {
-      "id": 269925180,
+      "id": 272523587,
       "interfaceName": "TenGigabitEthernet2/1/4",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -877,7 +877,7 @@
       "macAddress": "a0c7.d27a.d9d5"
     },
     {
-      "id": 269925181,
+      "id": 272523588,
       "interfaceName": "AppGigabitEthernet2/0/1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -889,7 +889,7 @@
       "macAddress": "b4ca.ddf7.139d"
     },
     {
-      "id": 269925182,
+      "id": 272523589,
       "interfaceName": "Vlan1",
       "ip4Addresses": [],
       "ip6Addresses": [],
@@ -901,7 +901,7 @@
       "macAddress": "a0c7.d27a.d9c7"
     },
     {
-      "id": 269925183,
+      "id": 272523590,
       "interfaceName": "Vlan2859",
       "ip4Addresses": [
         {
@@ -919,6 +919,6 @@
       "macAddress": "a0c7.d27a.d9e1"
     }
   ],
-  "cached_at": "2026-01-05T02:00:22.383817",
+  "cached_at": "2026-01-07T21:11:29.132908",
   "key": "device_interfaces_13918"
 }

@@ -1,7 +1,7 @@
 {
   "value": [
     {
-      "id": 272074755,
+      "id": 272517765,
       "interfaceName": "eth 6/0",
       "ip4Addresses": [
         {
@@ -19,7 +19,7 @@
       "macAddress": "0017.1012.ee40"
     },
     {
-      "id": 272074756,
+      "id": 272517766,
       "interfaceName": "loopback 0",
       "ip4Addresses": [
         {
@@ -37,7 +37,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074757,
+      "id": 272517767,
       "interfaceName": "loopback 1",
       "ip4Addresses": [
         {
@@ -55,7 +55,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074758,
+      "id": 272517768,
       "interfaceName": "loopback 7",
       "ip4Addresses": [
         {
@@ -73,7 +73,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074759,
+      "id": 272517769,
       "interfaceName": "vlan 201",
       "ip4Addresses": [
         {
@@ -91,7 +91,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074760,
+      "id": 272517770,
       "interfaceName": "vlan 251",
       "ip4Addresses": [
         {
@@ -109,7 +109,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074761,
+      "id": 272517771,
       "interfaceName": "vlan 601",
       "ip4Addresses": [
         {
@@ -127,7 +127,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074762,
+      "id": 272517772,
       "interfaceName": "vlan 651",
       "ip4Addresses": [
         {
@@ -145,7 +145,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074763,
+      "id": 272517773,
       "interfaceName": "vlan 840",
       "ip4Addresses": [
         {
@@ -163,7 +163,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074764,
+      "id": 272517774,
       "interfaceName": "vlan 890",
       "ip4Addresses": [
         {
@@ -181,7 +181,7 @@
       "macAddress": "0017.1013.e500"
     },
     {
-      "id": 272074765,
+      "id": 272517775,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -199,7 +199,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074766,
+      "id": 272517776,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -217,7 +217,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074767,
+      "id": 272517777,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -235,7 +235,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074768,
+      "id": 272517778,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -253,7 +253,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074769,
+      "id": 272517779,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -271,7 +271,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074770,
+      "id": 272517780,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -289,7 +289,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074771,
+      "id": 272517781,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -307,7 +307,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074772,
+      "id": 272517782,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -325,7 +325,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074773,
+      "id": 272517783,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -343,7 +343,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074774,
+      "id": 272517784,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -361,7 +361,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074775,
+      "id": 272517785,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -379,7 +379,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074776,
+      "id": 272517786,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -397,7 +397,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074777,
+      "id": 272517787,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -415,7 +415,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074778,
+      "id": 272517788,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -433,7 +433,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074779,
+      "id": 272517789,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -451,7 +451,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074780,
+      "id": 272517790,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -469,7 +469,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074781,
+      "id": 272517791,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -487,7 +487,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074782,
+      "id": 272517792,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -505,7 +505,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074783,
+      "id": 272517793,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -523,7 +523,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074784,
+      "id": 272517794,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -541,7 +541,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074785,
+      "id": 272517795,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -559,7 +559,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074786,
+      "id": 272517796,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -577,7 +577,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074787,
+      "id": 272517797,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -595,7 +595,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074788,
+      "id": 272517798,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -613,7 +613,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074789,
+      "id": 272517799,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -631,7 +631,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074790,
+      "id": 272517800,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -649,7 +649,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074791,
+      "id": 272517801,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -667,7 +667,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074792,
+      "id": 272517802,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -685,7 +685,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074793,
+      "id": 272517803,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -703,7 +703,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074794,
+      "id": 272517804,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -721,7 +721,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074795,
+      "id": 272517805,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -739,7 +739,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074796,
+      "id": 272517806,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -757,7 +757,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074797,
+      "id": 272517807,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -775,7 +775,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074798,
+      "id": 272517808,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -793,7 +793,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074799,
+      "id": 272517809,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -811,7 +811,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074800,
+      "id": 272517810,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -829,7 +829,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074801,
+      "id": 272517811,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -847,7 +847,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074802,
+      "id": 272517812,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -865,7 +865,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074803,
+      "id": 272517813,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -883,7 +883,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074804,
+      "id": 272517814,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -901,7 +901,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074805,
+      "id": 272517815,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -919,7 +919,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074806,
+      "id": 272517816,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -937,7 +937,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074807,
+      "id": 272517817,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -955,7 +955,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074808,
+      "id": 272517818,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -973,7 +973,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074809,
+      "id": 272517819,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -991,7 +991,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074810,
+      "id": 272517820,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1009,7 +1009,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074811,
+      "id": 272517821,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1027,7 +1027,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074812,
+      "id": 272517822,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1045,7 +1045,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074813,
+      "id": 272517823,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1063,7 +1063,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074814,
+      "id": 272517824,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1081,7 +1081,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074815,
+      "id": 272517825,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1099,7 +1099,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074816,
+      "id": 272517826,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1117,7 +1117,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074817,
+      "id": 272517827,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1135,7 +1135,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 272074818,
+      "id": 272517828,
       "interfaceName": "ip-bundle 1",
       "ip4Addresses": [
         {
@@ -1153,6 +1153,6 @@
       "macAddress": "0000.0000.0000"
     }
   ],
-  "cached_at": "2026-01-05T02:02:01.157232",
+  "cached_at": "2026-01-07T21:11:44.345007",
   "key": "device_interfaces_10906"
 }

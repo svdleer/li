@@ -110,6 +110,10 @@ case "$1" in
     # Start SSH tunnel with port forwarding
     start_tunnel "SSH Access" "$LOCAL_SSH_PORT" "$PROD_SERVER" "$SSH_PORT"
     
+    # Start Netshot HTTPS tunnels
+    start_tunnel "Netshot HTTPS" "8443" "netshot.oss.local" "443"
+    start_tunnel "Netshot MND HTTPS" "8444" "netshot.mnd.b2b.oss.local" "443"
+    
     # Add local port forward through the SSH tunnel
     echo -ne "${YELLOW}✓ Web Application: localhost:${LOCAL_WEBAPP_PORT} -> appdb-sh.oss.local:${WEBAPP_PORT}${NC}"
     ssh -f -N -L ${LOCAL_WEBAPP_PORT}:localhost:${WEBAPP_PORT} -p ${LOCAL_SSH_PORT} svdleer@localhost &
@@ -123,6 +127,12 @@ case "$1" in
     echo ""
     echo -e "${YELLOW}Access web app:${NC}"
     echo "http://localhost:${LOCAL_WEBAPP_PORT}"
+    echo ""
+    echo -e "${YELLOW}Access Netshot:${NC}"
+    echo "https://localhost:8443"
+    echo ""
+    echo -e "${YELLOW}Access Netshot MND:${NC}"
+    echo "https://localhost:8444"
     echo ""
     ;;
     

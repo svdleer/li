@@ -1,7 +1,7 @@
 {
   "value": [
     {
-      "id": 269926121,
+      "id": 272522349,
       "interfaceName": "cable-mac 1.0",
       "ip4Addresses": [
         {
@@ -19,7 +19,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926122,
+      "id": 272522350,
       "interfaceName": "link-aggregate 1.201",
       "ip4Addresses": [
         {
@@ -37,7 +37,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926123,
+      "id": 272522351,
       "interfaceName": "link-aggregate 1.601",
       "ip4Addresses": [
         {
@@ -55,7 +55,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926124,
+      "id": 272522352,
       "interfaceName": "link-aggregate 2.251",
       "ip4Addresses": [
         {
@@ -73,7 +73,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926125,
+      "id": 272522353,
       "interfaceName": "link-aggregate 2.651",
       "ip4Addresses": [
         {
@@ -91,7 +91,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926126,
+      "id": 272522354,
       "interfaceName": "loopback 0",
       "ip4Addresses": [
         {
@@ -109,7 +109,7 @@
       "macAddress": "0000.0000.0000"
     },
     {
-      "id": 269926127,
+      "id": 272522355,
       "interfaceName": "ethernet 6/0.0",
       "ip4Addresses": [
         {
@@ -127,6 +127,6 @@
       "macAddress": "0000.0000.0000"
     }
   ],
-  "cached_at": "2026-01-05T02:02:18.139502",
+  "cached_at": "2026-01-07T21:11:51.613806",
   "key": "device_interfaces_13764"
 }
