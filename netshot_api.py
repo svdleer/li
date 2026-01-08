@@ -355,6 +355,47 @@ class NetshotAPI:
             self.logger.error(f"Error fetching interfaces for device {device_id}: {e}")
             return []
     
+    def _get_nokia_loopback_from_diagnostic(self, device_id: int, device_name: str = None) -> Optional[str]:
+        """
+        Get loopback IP from Nokia NOKIA_LI_INT diagnostic
+        
+        Args:
+            device_id: Netshot device ID
+            device_name: Device hostname (for logging)
+            
+        Returns:
+            Loopback IP from diagnostic or None
+        """
+        try:
+            # Get diagnostics for the device
+            response = self._make_request(f'devices/{device_id}/diagnostics')
+            if not response:
+                return None
+            
+            diagnostics = response if isinstance(response, list) else []
+            
+            # Look for NOKIA_LI_INT diagnostic
+            for diag in diagnostics:
+                if diag.get('name') == 'NOKIA_LI_INT':
+                    result_text = diag.get('result', '{}')
+                    try:
+                        import json
+                        result = json.loads(result_text)
+                        li_loopback = result.get('LI_LOOPBACK')
+                        if li_loopback:
+                            log_name = device_name or f"device {device_id}"
+                            self.logger.info(f"Found Nokia LI loopback ({li_loopback}) from diagnostic for {log_name}")
+                            return li_loopback
+                    except json.JSONDecodeError:
+                        self.logger.warning(f"Failed to parse NOKIA_LI_INT diagnostic for device {device_id}")
+                        continue
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting Nokia diagnostic for device {device_id}: {e}")
+            return None
+    
     def get_loopback_interface(self, device_id: int, device_name: str = None, force_refresh: bool = False) -> Optional[str]:
         """
         Get the loopback interface IP address for a device
@@ -376,6 +417,15 @@ class NetshotAPI:
                 return cached_data
         
         try:
+            # First, check if this is a Nokia device by checking diagnostics
+            nokia_loopback = self._get_nokia_loopback_from_diagnostic(device_id, device_name)
+            if nokia_loopback:
+                # Cache and return Nokia diagnostic result
+                if self.use_cache:
+                    self.cache.set(cache_key, nokia_loopback)
+                return nokia_loopback
+            
+            # Fall back to interface parsing for non-Nokia or if diagnostic not available
             interfaces = self.get_device_interfaces(device_id, force_refresh=force_refresh)
             
             # Determine if this is a Casa device (loopback 7) or standard device
