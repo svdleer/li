@@ -97,6 +97,20 @@ class RedisCache:
         else:
             return self._file_cache.get(key)
     
+    def get_or_set(self, key: str, func: callable, ttl: Optional[int] = None) -> Any:
+        """Get value from cache or compute and cache it"""
+        # Try to get from cache
+        value = self.get(key)
+        if value is not None:
+            return value
+        
+        # Compute value
+        value = func()
+        
+        # Store in cache
+        self.set(key, value, ttl)
+        return value
+    
     def delete(self, key: str) -> bool:
         """Delete value from cache"""
         if self._use_redis:
