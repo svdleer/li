@@ -1416,7 +1416,6 @@ def dashboard():
     """Main dashboard with overview statistics"""
     try:
         netshot_client = get_netshot_client()
-        cache_mgr = get_cache_manager()
         
         # Test Netshot connection
         netshot_available = netshot_client.test_connection()
@@ -1435,7 +1434,7 @@ def dashboard():
         
         # Get or compute dashboard stats with 5-minute cache
         # This prevents expensive recalculation on every page load
-        computed_stats = cache_mgr.get_or_set(
+        computed_stats = netshot_client.cache.get_or_set(
             'dashboard_stats',
             _compute_dashboard_stats,
             ttl=300  # 5 minutes cache
