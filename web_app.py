@@ -1471,7 +1471,7 @@ def dashboard():
 def refresh_device(device_name):
     """Refresh device data by clearing cache and re-fetching from Netshot/DHCP"""
     try:
-        from cache_manager import CacheManager
+        from cache_manager import get_cache_manager
         from app_cache import AppCache
         from dhcp_database import DHCPDatabase
         import hashlib
@@ -1488,12 +1488,15 @@ def refresh_device(device_name):
         if not device_id:
             return jsonify({'success': False, 'error': f'Device {device_name} not found'}), 404
         
-        # Clear file cache for this specific device
-        cache_mgr = CacheManager('.cache')
+        # Clear Redis and file cache for this specific device
+        cache_mgr = get_cache_manager()
         cache_keys_to_clear = [
             f'device_loopback_{device_id}',
             f'device_subnets_{device_id}',
             f'device_primary_{device_id}',
+            f'device_diagnostic_{device_id}_CMTS_LI_SUBNETS',
+            f'device_diagnostic_{device_id}_CMTS_LI_PRIMARY',
+            f'device_diagnostic_{device_id}_CMTS_LI_LOOPBACK',
         ]
         
         cleared_count = 0
@@ -1501,9 +1504,9 @@ def refresh_device(device_name):
             try:
                 cache_mgr.delete(cache_key)
                 cleared_count += 1
-                logger.info(f"Cleared file cache: {cache_key}")
+                logger.info(f"Cleared cache: {cache_key}")
             except Exception as e:
-                logger.warning(f"Could not clear {cache_key}: {e}")
+                logger.debug(f"Cache key not found or already cleared: {cache_key}")
         
         # Re-fetch device data from Netshot with force_refresh
         try:
@@ -1550,9 +1553,29 @@ def refresh_device(device_name):
                     
                     dhcp_db.disconnect()
                 
-                # Update the device in the main cache list
+                # Update the device in the main cache list (both Redis and file)
                 try:
                     import json
+                    
+                    # Update in Redis if available
+                    try:
+                        import redis
+                        r = redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'), decode_responses=True)
+                        
+                        # Update the cmts_devices_207 list in Redis
+                        devices_json = r.get('cmts_devices_207')
+                        if devices_json:
+                            devices_list = json.loads(devices_json)
+                            for i, d in enumerate(devices_list):
+                                if d.get('name') == device_name or d.get('id') == device_id:
+                                    devices_list[i] = device_data
+                                    logger.info(f"Updated device {device_name} in Redis cache")
+                                    break
+                            r.set('cmts_devices_207', json.dumps(devices_list))
+                    except Exception as redis_err:
+                        logger.debug(f"Redis update skipped: {redis_err}")
+                    
+                    # Also update file cache as fallback
                     cache_key = 'cmts_devices_207'
                     key_hash = hashlib.md5(cache_key.encode()).hexdigest()
                     cache_file = cache_mgr.cache_dir / f"{key_hash}.json"
@@ -1564,9 +1587,9 @@ def refresh_device(device_name):
                         devices_list = cache_data.get('value', [])
                         # Find and update this device in the list
                         for i, d in enumerate(devices_list):
-                            if d.get('name') == device_name:
+                            if d.get('name') == device_name or d.get('id') == device_id:
                                 devices_list[i] = device_data
-                                logger.info(f"Updated device {device_name} in main cache")
+                                logger.info(f"Updated device {device_name} in file cache")
                                 break
                         
                         # Save back
@@ -1576,7 +1599,7 @@ def refresh_device(device_name):
                 except Exception as e:
                     logger.warning(f"Could not update main cache: {e}")
                 
-                logger.info(f"Successfully refreshed device {device_name} from Netshot and DHCP")
+                logger.info(f"Successfully refreshed device {device_name} from Netshot and DHCP (cleared {cleared_count} cache keys)")
         except Exception as e:
             logger.error(f"Error re-fetching device data: {e}")
         
