@@ -40,6 +40,7 @@ from eve_li_xml_generator_v2 import EVEXMLGeneratorV2
 from audit_logger import get_audit_logger
 from rbac import get_rbac_manager, require_permission, check_permission, Role, Permission, ROLE_PERMISSIONS
 from config_manager import get_config_manager
+from cache_manager import get_cache_manager
 import bcrypt
 
 # Load environment variables
@@ -1317,12 +1318,105 @@ def search_page():
                          results={'total_matches': len(results), 'results': results, 'query_type': 'subnet_search'})
 
 
+def _compute_dashboard_stats():
+    """Compute expensive dashboard statistics (cached separately)"""
+    netshot_client = get_netshot_client()
+    
+    # Get devices from cache (already fast)
+    cmts_devices = netshot_client.get_cmts_devices(force_refresh=False)
+    pe_devices = netshot_client.get_pe_devices()
+    
+    # Filter out [NONAME] and VCAS devices
+    cmts_filtered = [d for d in cmts_devices 
+                    if d.get('name') != '[NONAME]' 
+                    and d.get('oss10_hostname') != '[NONAME]'
+                    and 'VCAS' not in d.get('name', '').upper()]
+    pe_filtered = [d for d in pe_devices if d.get('name') != '[NONAME]']
+    
+    # Count public subnets separately for CMTS and PE
+    from subnet_utils import is_public_ipv4, is_public_ipv6
+    cmts_public_subnets = 0
+    pe_public_subnets = 0
+    devices_with_dhcp = 0
+    devices_with_loopback = 0
+    
+    # Count CMTS subnets
+    for device in cmts_filtered:
+        subnets = device.get('subnets', [])
+        primary = device.get('primary_subnet')
+        public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
+        public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+        cmts_public_subnets += len(public_ipv4) + len(public_ipv6)
+        
+        if device.get('dhcp_validation', {}).get('has_dhcp'):
+            devices_with_dhcp += 1
+        if device.get('loopback'):
+            devices_with_loopback += 1
+    
+    # Count PE subnets
+    for device in pe_filtered:
+        subnets = device.get('subnets', [])
+        public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
+        public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
+        pe_public_subnets += len(public_ipv4) + len(public_ipv6)
+    
+    # Get recent XML files info
+    output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
+    recent_files = []
+    last_xml_update = 'Never'
+    last_generation_status = 'pending'
+    last_upload_status = 'pending'
+    
+    if output_dir.exists():
+        xml_files = sorted(output_dir.glob('*.xml.gz'), key=lambda p: p.stat().st_mtime, reverse=True)
+        if xml_files:
+            last_xml_update = datetime.fromtimestamp(xml_files[0].stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            last_generation_status = 'success'
+            
+            # Check upload status from response files
+            response_files = sorted(output_dir.glob('*.response.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+            if response_files:
+                try:
+                    with open(response_files[0], 'r') as f:
+                        response_data = json.load(f)
+                        if response_data.get('success') or response_data.get('status') == 'success':
+                            last_upload_status = 'success'
+                        else:
+                            last_upload_status = 'failed'
+                except Exception:
+                    last_upload_status = 'pending'
+        
+        for xml_file in xml_files[:10]:
+            stat = xml_file.stat()
+            recent_files.append({
+                'name': xml_file.name,
+                'size': stat.st_size,
+                'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            })
+    
+    return {
+        'cmts_count': len(cmts_filtered),
+        'pe_count': len(pe_filtered),
+        'total_devices': len(cmts_filtered) + len(pe_filtered),
+        'public_subnets': cmts_public_subnets + pe_public_subnets,
+        'cmts_subnets': cmts_public_subnets,
+        'pe_subnets': pe_public_subnets,
+        'devices_with_dhcp': devices_with_dhcp,
+        'devices_with_loopback': devices_with_loopback,
+        'recent_files': recent_files,
+        'last_xml_update': last_xml_update,
+        'last_generation_status': last_generation_status,
+        'last_upload_status': last_upload_status
+    }
+
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
     """Main dashboard with overview statistics"""
     try:
         netshot_client = get_netshot_client()
+        cache_mgr = get_cache_manager()
         
         # Test Netshot connection
         netshot_available = netshot_client.test_connection()
@@ -1339,97 +1433,17 @@ def dashboard():
             logger.error(f"MySQL cache test failed: {e}")
             mysql_available = False
         
-        # Get cached device counts (fast - from cache)
-        cmts_devices = netshot_client.get_cmts_devices(force_refresh=False)
-        pe_devices = netshot_client.get_pe_devices()
-        
-        # Filter out [NONAME] and VCAS devices
-        cmts_filtered = [d for d in cmts_devices 
-                        if d.get('name') != '[NONAME]' 
-                        and d.get('oss10_hostname') != '[NONAME]'
-                        and 'VCAS' not in d.get('name', '').upper()]
-        pe_filtered = [d for d in pe_devices if d.get('name') != '[NONAME]']
-        
-        # Count public subnets separately for CMTS and PE
-        from subnet_utils import is_public_ipv4, is_public_ipv6
-        cmts_public_subnets = 0
-        pe_public_subnets = 0
-        devices_with_dhcp = 0
-        devices_with_loopback = 0
-        
-        # Count CMTS subnets
-        for device in cmts_filtered:
-            subnets = device.get('subnets', [])
-            primary = device.get('primary_subnet')
-            public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and s != primary and is_public_ipv4(s.split('/')[0])]
-            public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
-            cmts_public_subnets += len(public_ipv4) + len(public_ipv6)
-            
-            if device.get('dhcp_validation', {}).get('has_dhcp'):
-                devices_with_dhcp += 1
-            if device.get('loopback'):
-                devices_with_loopback += 1
-        
-        # Count PE subnets
-        for device in pe_filtered:
-            subnets = device.get('subnets', [])
-            public_ipv4 = [s for s in subnets if '.' in s and ':' not in s and is_public_ipv4(s.split('/')[0])]
-            public_ipv6 = [s for s in subnets if ':' in s and is_public_ipv6(s.split('/')[0])]
-            pe_public_subnets += len(public_ipv4) + len(public_ipv6)
-        
-        total_public_subnets = cmts_public_subnets + pe_public_subnets
-        
-        # Get recent XML files
-        output_dir = Path(os.getenv('OUTPUT_DIR', 'output'))
-        recent_files = []
-        last_xml_update = 'Never'
-        last_generation_status = 'pending'
-        last_upload_status = 'pending'
-        
-        if output_dir.exists():
-            xml_files = sorted(output_dir.glob('*.xml.gz'), key=lambda p: p.stat().st_mtime, reverse=True)
-            if xml_files:
-                # Get most recent file timestamp
-                last_xml_update = datetime.fromtimestamp(xml_files[0].stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
-                last_generation_status = 'success'  # If files exist, generation was successful
-                
-                # Check upload status from response files
-                response_files = sorted(output_dir.glob('*.response.json'), key=lambda p: p.stat().st_mtime, reverse=True)
-                if response_files:
-                    try:
-                        import json
-                        with open(response_files[0], 'r') as f:
-                            response_data = json.load(f)
-                            # Check if upload was successful (customize based on your response format)
-                            if response_data.get('success') or response_data.get('status') == 'success':
-                                last_upload_status = 'success'
-                            else:
-                                last_upload_status = 'failed'
-                    except Exception:
-                        last_upload_status = 'pending'
-            
-            for xml_file in xml_files[:10]:
-                stat = xml_file.stat()
-                recent_files.append({
-                    'name': xml_file.name,
-                    'size': stat.st_size,
-                    'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
-                })
+        # Get or compute dashboard stats with 5-minute cache
+        # This prevents expensive recalculation on every page load
+        computed_stats = cache_mgr.get_or_set(
+            'dashboard_stats',
+            _compute_dashboard_stats,
+            ttl=300  # 5 minutes cache
+        )
         
         stats = {
             'netshot_status': 'connected' if netshot_available else 'disconnected',
-            'cmts_count': len(cmts_filtered),
-            'pe_count': len(pe_filtered),
-            'total_devices': len(cmts_filtered) + len(pe_filtered),
-            'public_subnets': total_public_subnets,
-            'cmts_subnets': cmts_public_subnets,
-            'pe_subnets': pe_public_subnets,
-            'devices_with_dhcp': devices_with_dhcp,
-            'devices_with_loopback': devices_with_loopback,
-            'recent_files': recent_files,
-            'last_xml_update': last_xml_update,
-            'last_generation_status': last_generation_status,
-            'last_upload_status': last_upload_status
+            **computed_stats
         }
         
         return render_template("dashboard.html",
