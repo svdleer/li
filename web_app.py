@@ -1539,17 +1539,9 @@ def refresh_device(device_name):
                         validation = dhcp_db.validate_device_dhcp(dhcp_hostname, primary, ipv4_subnets, ipv6_subnets)
                         validation['dhcp_hostname'] = dhcp_hostname
                         
-                        # Store in MySQL cache
-                        app_cache = AppCache()
-                        if app_cache.connect():
-                            app_cache.set(
-                                cache_key=f'device_validation:{device_name}',
-                                cache_type='device_validation',
-                                data=validation,
-                                ttl_seconds=86400
-                            )
-                            app_cache.disconnect()
-                            logger.info(f"Updated DHCP validation for {device_name}")
+                        # Save to dhcp_validation_cache table
+                        dhcp_db.save_dhcp_validation(device_name, validation)
+                        logger.info(f"Updated DHCP validation for {device_name}")
                     
                     dhcp_db.disconnect()
                 
