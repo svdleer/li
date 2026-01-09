@@ -1434,11 +1434,13 @@ def dashboard():
         
         # Get or compute dashboard stats with 5-minute cache
         # This prevents expensive recalculation on every page load
+        logger.info("Attempting to get dashboard stats from cache...")
         computed_stats = netshot_client.cache.get_or_set(
             'dashboard_stats',
             _compute_dashboard_stats,
             ttl=300  # 5 minutes cache
         )
+        logger.info("Dashboard stats retrieved successfully")
         
         stats = {
             'netshot_status': 'connected' if netshot_available else 'disconnected',
