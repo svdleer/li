@@ -102,13 +102,16 @@ class RedisCache:
         # Try to get from cache
         value = self.get(key)
         if value is not None:
+            self.logger.debug(f"Cache HIT for key: {key}")
             return value
         
         # Compute value
+        self.logger.debug(f"Cache MISS for key: {key}, computing...")
         value = func()
         
         # Store in cache
         self.set(key, value, ttl)
+        self.logger.debug(f"Cached computed value for key: {key}")
         return value
     
     def delete(self, key: str) -> bool:
