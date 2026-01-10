@@ -1336,7 +1336,7 @@ def _compute_dashboard_stats():
     
     # Get devices from cache (already fast)
     cmts_devices = netshot_client.get_cmts_devices(force_refresh=False)
-    pe_devices = netshot_client.get_pe_devices()
+    pe_devices = netshot_client.get_pe_devices(force_refresh=False)
     
     # Filter out [NONAME] and VCAS devices
     cmts_filtered = [d for d in cmts_devices 
