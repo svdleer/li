@@ -278,5 +278,79 @@
             </div>
         </div>
     </form>
+    
+    <!-- Test Email Buttons (outside form to prevent submission) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-envelope-check"></i> Test Email Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Send test emails to verify your SMTP configuration. Make sure to save your settings first!</p>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-success" onclick="testEmail('success')">
+                            <i class="bi bi-check-circle"></i> Send Success Test Email
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="testEmail('failure')">
+                            <i class="bi bi-x-circle"></i> Send Failure Test Email
+                        </button>
+                    </div>
+                    <div id="testEmailResult" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function testEmail(type) {
+    const resultDiv = document.getElementById('testEmailResult');
+    const deviceType = 'vfz'; // Default to CMTS
+    
+    // Show loading
+    resultDiv.innerHTML = `
+        <div class="alert alert-info">
+            <i class="bi bi-hourglass-split"></i> Sending test email...
+        </div>
+    `;
+    
+    // Send test request
+    fetch('/api/test/email-notification', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: type,
+            device_type: deviceType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> <strong>Success!</strong> ${data.message}
+                    <br><small>Recipients: ${data.recipients.join(', ')}</small>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i> <strong>Failed:</strong> ${data.message}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> <strong>Error:</strong> ${error.message || 'Failed to send test email'}
+            </div>
+        `;
+    });
+}
+</script>
+
 {% endblock %}

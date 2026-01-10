@@ -2425,6 +2425,131 @@ def api_upload_xml():
         }), 500
 
 
+@app.route("/api/test/email-notification", methods=["POST"])
+@login_required
+def api_test_email_notification():
+    """Test endpoint to trigger email notifications manually"""
+    try:
+        notification_type = request.json.get('type', 'success')  # success or failure
+        device_type = request.json.get('device_type', 'vfz')     # vfz or pe
+        
+        from email_notifier import EmailNotifier
+        notifier = EmailNotifier()
+        
+        if not notifier.enabled:
+            return jsonify({
+                'success': False,
+                'message': 'Email notifications are disabled. Enable them in Settings first.'
+            }), 400
+        
+        if not notifier.to_emails:
+            return jsonify({
+                'success': False,
+                'message': 'No recipient email addresses configured. Add recipients in Settings.'
+            }), 400
+        
+        # Simulate email notification
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        device_label = 'CMTS' if device_type == 'vfz' else 'PE Router'
+        
+        if notification_type == 'success':
+            subject = f"✅ TEST: EVE LI XML Generation Successful - {device_label} ({timestamp})"
+            status_color = "#28a745"
+            status_icon = "✅"
+            status_text = "SUCCESS (TEST)"
+            error_html = ""
+        else:
+            subject = f"❌ TEST: EVE LI XML Generation Failed - {device_label} ({timestamp})"
+            status_color = "#dc3545"
+            status_icon = "❌"
+            status_text = "FAILED (TEST)"
+            error_html = '<div class="error"><strong>Error:</strong><br>This is a simulated error for testing purposes.</div>'
+        
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; padding: 20px; }}
+                .header {{ background-color: {status_color}; color: white; padding: 20px; text-align: center; border-radius: 5px; }}
+                .content {{ background-color: #f8f9fa; padding: 20px; margin-top: 10px; border-radius: 5px; }}
+                .info-box {{ background-color: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid {status_color}; }}
+                .error {{ background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #f5c6cb; }}
+                .test-badge {{ display: inline-block; background-color: #ffc107; color: #000; padding: 5px 10px; border-radius: 3px; font-weight: bold; margin: 10px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div style="font-size: 24px; font-weight: bold;">{status_icon} {status_text}</div>
+                <div>EVE LI XML Generation Report</div>
+            </div>
+            
+            <div class="content">
+                <div class="test-badge">🧪 THIS IS A TEST EMAIL</div>
+                
+                <div class="info-box">
+                    <p><strong>Device Type:</strong> {device_label}</p>
+                    <p><strong>Timestamp:</strong> {timestamp}</p>
+                    <p><strong>Devices Processed:</strong> 157 (simulated)</p>
+                    <p><strong>Generated File:</strong> EVE_NL_Infra_CMTS-TEST.xml (simulated)</p>
+                    <p><strong>Triggered By:</strong> {session['user'].get('preferred_username', 'test-user')}</p>
+                </div>
+                
+                {error_html}
+                
+                <p>If you received this email, your email notifications are working correctly!</p>
+                <p>Configure email settings in the application Settings page.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_body = f"""
+        TEST Email - {status_text}
+        ===========================
+        
+        🧪 THIS IS A TEST EMAIL
+        
+        Device Type: {device_label}
+        Timestamp: {timestamp}
+        Devices Processed: 157 (simulated)
+        Triggered By: {session['user'].get('preferred_username', 'test-user')}
+        
+        If you received this email, your email notifications are working correctly!
+        """
+        
+        success = notifier.send_email(subject, html_body, text_body)
+        
+        # Audit log
+        audit = get_audit_logger()
+        audit.log(
+            username=session['user'].get('preferred_username'),
+            category='TEST',
+            action=f'Sent test email notification ({notification_type})',
+            details=f'Recipients: {", ".join(notifier.to_emails)}',
+            ip_address=request.remote_addr
+        )
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Test {notification_type} email sent successfully to {len(notifier.to_emails)} recipient(s)',
+                'recipients': notifier.to_emails
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to send test email. Check SMTP configuration.'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error sending test email: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
 @app.route("/api/devices")
 @login_required
 def api_devices():
