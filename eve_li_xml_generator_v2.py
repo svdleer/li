@@ -148,7 +148,7 @@ class EVEXMLGeneratorV2:
         try:
             self.logger.info("Fetching PE devices from Netshot")
             
-            pe_devices = self.netshot.get_pe_devices()
+            pe_devices = self.netshot.get_pe_devices(force_refresh=False)
             
             self.logger.info(f"Retrieved {len(pe_devices)} PE devices")
             return pe_devices
