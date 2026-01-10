@@ -6,7 +6,7 @@ Email Notification Service
 Sends HTML formatted email notifications for XML upload status
 
 Author: Silvester van der Leer
-Version: 1.0
+Version: 2.0
 """
 
 import logging
@@ -24,22 +24,52 @@ class EmailNotifier:
     """Email notification service"""
     
     def __init__(self):
-        """Initialize email notifier with SMTP settings"""
-        self.enabled = os.getenv('EMAIL_ENABLED', 'false').lower() == 'true'
-        self.smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-        self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        self.smtp_user = os.getenv('SMTP_USER', '')
-        self.smtp_password = os.getenv('SMTP_PASSWORD', '')
-        self.smtp_use_tls = os.getenv('SMTP_USE_TLS', 'true').lower() == 'true'
-        
-        self.from_email = os.getenv('EMAIL_FROM', self.smtp_user)
-        self.from_name = os.getenv('EMAIL_FROM_NAME', 'EVE LI XML Generator')
-        self.to_emails = os.getenv('EMAIL_TO', '').split(',')
-        self.to_emails = [e.strip() for e in self.to_emails if e.strip()]
-        
-        self.web_url = os.getenv('WEB_URL', 'http://localhost:8080')
-        
-        logger.info(f"Email notifier initialized (enabled: {self.enabled})")
+        """Initialize email notifier with SMTP settings from config manager or environment"""
+        # Try to load from config manager first
+        try:
+            from config_manager import get_config_manager
+            config_mgr = get_config_manager()
+            
+            # Get settings with fallback to environment variables
+            self.enabled = (config_mgr.get_setting('email_enabled') or 
+                          os.getenv('EMAIL_ENABLED', 'false')).lower() == 'true'
+            
+            self.smtp_host = config_mgr.get_setting('smtp_host') or os.getenv('SMTP_HOST', 'smtp.gmail.com')
+            self.smtp_port = int(config_mgr.get_setting('smtp_port') or os.getenv('SMTP_PORT', '587'))
+            self.smtp_user = config_mgr.get_setting('smtp_user') or os.getenv('SMTP_USER', '')
+            self.smtp_password = config_mgr.get_setting('smtp_password') or os.getenv('SMTP_PASSWORD', '')
+            self.smtp_use_tls = (config_mgr.get_setting('smtp_use_tls') or 
+                                os.getenv('SMTP_USE_TLS', 'true')).lower() == 'true'
+            
+            self.from_email = config_mgr.get_setting('email_from') or os.getenv('EMAIL_FROM', self.smtp_user)
+            self.from_name = config_mgr.get_setting('email_from_name') or os.getenv('EMAIL_FROM_NAME', 'EVE LI XML Generator')
+            
+            # Parse email recipients from config or environment
+            email_to = config_mgr.get_setting('email_to') or os.getenv('EMAIL_TO', '')
+            self.to_emails = [e.strip() for e in email_to.split(',') if e.strip()]
+            
+            self.web_url = config_mgr.get_setting('web_url') or os.getenv('WEB_URL', 'http://localhost:8080')
+            
+            logger.info(f"Email notifier initialized from config manager (enabled: {self.enabled})")
+            
+        except Exception as e:
+            logger.warning(f"Could not load from config manager, using environment variables: {e}")
+            # Fallback to environment variables
+            self.enabled = os.getenv('EMAIL_ENABLED', 'false').lower() == 'true'
+            self.smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
+            self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
+            self.smtp_user = os.getenv('SMTP_USER', '')
+            self.smtp_password = os.getenv('SMTP_PASSWORD', '')
+            self.smtp_use_tls = os.getenv('SMTP_USE_TLS', 'true').lower() == 'true'
+            
+            self.from_email = os.getenv('EMAIL_FROM', self.smtp_user)
+            self.from_name = os.getenv('EMAIL_FROM_NAME', 'EVE LI XML Generator')
+            self.to_emails = os.getenv('EMAIL_TO', '').split(',')
+            self.to_emails = [e.strip() for e in self.to_emails if e.strip()]
+            
+            self.web_url = os.getenv('WEB_URL', 'http://localhost:8080')
+            
+            logger.info(f"Email notifier initialized from environment (enabled: {self.enabled})")
     
     def send_email(self, subject: str, html_body: str, text_body: str = None, to_emails: list = None):
         """Send HTML email

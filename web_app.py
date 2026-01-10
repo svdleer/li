@@ -862,7 +862,9 @@ def settings_page():
             settings_to_update = [
                 'mysql_host', 'mysql_port', 'mysql_user', 'mysql_password', 'mysql_database',
                 'cache_host', 'cache_port', 'cache_user', 'cache_password', 'cache_database',
-                'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group'
+                'netshot_url', 'netshot_api_key', 'netshot_cmts_group', 'netshot_pe_group',
+                'email_enabled', 'smtp_host', 'smtp_port', 'smtp_user', 'smtp_password',
+                'smtp_use_tls', 'email_from', 'email_from_name', 'email_to', 'web_url'
             ]
             
             for setting_key in settings_to_update:
@@ -906,7 +908,17 @@ def settings_page():
         'netshot_url': os.getenv('NETSHOT_API_URL', 'https://netshot.oss.local/api'),
         'netshot_api_key': os.getenv('NETSHOT_API_KEY', ''),
         'netshot_cmts_group': os.getenv('NETSHOT_CMTS_GROUP', '207'),
-        'netshot_pe_group': os.getenv('NETSHOT_PE_GROUP', '205')
+        'netshot_pe_group': os.getenv('NETSHOT_PE_GROUP', '205'),
+        'email_enabled': os.getenv('EMAIL_ENABLED', 'false'),
+        'smtp_host': os.getenv('SMTP_HOST', 'smtp.gmail.com'),
+        'smtp_port': os.getenv('SMTP_PORT', '587'),
+        'smtp_user': os.getenv('SMTP_USER', ''),
+        'smtp_password': os.getenv('SMTP_PASSWORD', ''),
+        'smtp_use_tls': os.getenv('SMTP_USE_TLS', 'true'),
+        'email_from': os.getenv('EMAIL_FROM', ''),
+        'email_from_name': os.getenv('EMAIL_FROM_NAME', 'EVE LI XML Generator'),
+        'email_to': os.getenv('EMAIL_TO', ''),
+        'web_url': os.getenv('WEB_URL', 'http://localhost:8080')
     }
     
     # Use database value if exists, otherwise use env default

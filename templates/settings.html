@@ -142,7 +142,126 @@
                 </div>
             </div>
         </div>
-
+        <!-- Email Notifications Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-envelope"></i> Email Notifications</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Configure email notifications for XML generation status</p>
+                        
+                        <!-- Enable/Disable Toggle -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_enabled" 
+                                           name="email_enabled" value="true"
+                                           {{ 'checked' if settings.email_enabled and settings.email_enabled.value == 'true' else '' }}>
+                                    <label class="form-check-label" for="email_enabled">
+                                        <strong>Enable Email Notifications</strong>
+                                        <small class="text-muted d-block">Send email alerts on XML generation success/failure</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- SMTP Settings -->
+                        <h6 class="mb-3"><i class="bi bi-gear"></i> SMTP Server Settings</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label"><i class="bi bi-hdd-network"></i> SMTP Host</label>
+                                <input type="text" class="form-control" name="smtp_host" 
+                                       value="{{ settings.smtp_host.value if settings.smtp_host else '' }}"
+                                       placeholder="smtp.gmail.com">
+                                <small class="text-muted">SMTP server address</small>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label"><i class="bi bi-ethernet"></i> SMTP Port</label>
+                                <input type="text" class="form-control" name="smtp_port" 
+                                       value="{{ settings.smtp_port.value if settings.smtp_port else '' }}"
+                                       placeholder="587">
+                                <small class="text-muted">Usually 587 or 465</small>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-person"></i> SMTP Username</label>
+                                <input type="text" class="form-control" name="smtp_user" 
+                                       value="{{ settings.smtp_user.value if settings.smtp_user else '' }}"
+                                       placeholder="user@example.com">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><i class="bi bi-key"></i> SMTP Password</label>
+                                <input type="password" class="form-control" name="smtp_password" 
+                                       value="{{ settings.smtp_password.value if settings.smtp_password else '' }}">
+                                <small class="text-muted">App password if using Gmail</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="smtp_use_tls" 
+                                           name="smtp_use_tls" value="true"
+                                           {{ 'checked' if not settings.smtp_use_tls or settings.smtp_use_tls.value == 'true' else '' }}>
+                                    <label class="form-check-label" for="smtp_use_tls">
+                                        Use TLS/STARTTLS (recommended for port 587)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Email Content Settings -->
+                        <h6 class="mb-3"><i class="bi bi-pencil"></i> Email Settings</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-envelope-at"></i> From Email Address</label>
+                                <input type="email" class="form-control" name="email_from" 
+                                       value="{{ settings.email_from.value if settings.email_from else '' }}"
+                                       placeholder="noreply@vodafoneziggo.com">
+                                <small class="text-muted">Email address shown as sender</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-person-badge"></i> From Name</label>
+                                <input type="text" class="form-control" name="email_from_name" 
+                                       value="{{ settings.email_from_name.value if settings.email_from_name else '' }}"
+                                       placeholder="EVE LI XML Generator">
+                                <small class="text-muted">Sender name displayed in email</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label"><i class="bi bi-people"></i> Recipient Email Addresses</label>
+                                <input type="text" class="form-control" name="email_to" 
+                                       value="{{ settings.email_to.value if settings.email_to else '' }}"
+                                       placeholder="admin@vodafoneziggo.com, team@vodafoneziggo.com">
+                                <small class="text-muted">Comma-separated list of email addresses to receive notifications</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label"><i class="bi bi-link-45deg"></i> Web Application URL</label>
+                                <input type="text" class="form-control" name="web_url" 
+                                       value="{{ settings.web_url.value if settings.web_url else '' }}"
+                                       placeholder="http://localhost:8080">
+                                <small class="text-muted">URL included in email notifications (link to dashboard)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i> <strong>Note:</strong> For Gmail, you need to create an "App Password" 
+                            instead of using your regular password. Go to Google Account Settings → Security → 2-Step Verification → App Passwords.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Save Button -->
         <div class="row mb-4">
             <div class="col-12">

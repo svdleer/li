@@ -251,16 +251,21 @@ class EVEXMLGeneratorV2:
                 }
                 
                 self.logger.info(f"PE processing completed: {xml_file}")
+                # Send success notification
+                self._send_notification_email(True, 'pe', len(devices), None, xml_file)
                 return result
             else:
+                error_msg = 'XML generation failed'
+                self._send_notification_email(False, 'pe', len(devices), error_msg)
                 return {
                     'success': False,
-                    'message': 'XML generation failed',
+                    'message': error_msg,
                     'device_count': len(devices)
                 }
                 
         except Exception as e:
             self.logger.error(f"Error processing PE devices: {e}")
+            self._send_notification_email(False, 'pe', 0, str(e))
             return {
                 'success': False,
                 'message': str(e),
@@ -474,6 +479,112 @@ class EVEXMLGeneratorV2:
         except Exception as e:
             self.logger.error(f"Error uploading XML: {e}")
             return (False, str(e))
+    
+    def _send_notification_email(self, success: bool, device_type: str, device_count: int, 
+                                error_message: str = None, xml_file: str = None):
+        """
+        Send email notification about XML generation
+        
+        Args:
+            success: Whether generation was successful
+            device_type: Type of devices (vfz/pe)
+            device_count: Number of devices processed
+            error_message: Error message if failed
+            xml_file: Path to generated XML file
+        """
+        try:
+            from email_notifier import EmailNotifier
+            
+            notifier = EmailNotifier()
+            
+            if not notifier.enabled:
+                self.logger.debug("Email notifications disabled, skipping")
+                return
+            
+            if not notifier.to_emails:
+                self.logger.warning("No recipient emails configured, skipping notification")
+                return
+            
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            device_label = 'CMTS' if device_type == 'vfz' else 'PE Router'
+            
+            if success:
+                subject = f"✅ EVE LI XML Generation Successful - {device_label} ({timestamp})"
+                status_color = "#28a745"
+                status_icon = "✅"
+                status_text = "SUCCESS"
+            else:
+                subject = f"❌ EVE LI XML Generation Failed - {device_label} ({timestamp})"
+                status_color = "#dc3545"
+                status_icon = "❌"
+                status_text = "FAILED"
+            
+            # Build HTML email
+            html_body = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: {status_color}; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
+                    .status {{ font-size: 24px; font-weight: bold; margin-bottom: 10px; }}
+                    .content {{ background-color: #f8f9fa; padding: 20px; border-radius: 0 0 5px 5px; }}
+                    .info-box {{ background-color: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid {status_color}; }}
+                    .error {{ background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #f5c6cb; }}
+                    .button {{ display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }}
+                    .footer {{ text-align: center; color: #6c757d; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="status">{status_icon} {status_text}</div>
+                    <div>EVE LI XML Generation Report</div>
+                </div>
+                
+                <div class="content">
+                    <div class="info-box">
+                        <p><strong>Device Type:</strong> {device_label}</p>
+                        <p><strong>Timestamp:</strong> {timestamp}</p>
+                        <p><strong>Devices Processed:</strong> {device_count}</p>
+                        {f'<p><strong>Generated File:</strong> {os.path.basename(xml_file) if xml_file else "N/A"}</p>' if xml_file else ''}
+                    </div>
+                    
+                    {f'<div class="error"><strong>Error:</strong><br>{error_message}</div>' if error_message else ''}
+                    
+                    <p style="text-align: center;">
+                        <a href="{notifier.web_url}/dashboard" class="button">View Dashboard</a>
+                    </p>
+                </div>
+                
+                <div class="footer">
+                    <p>EVE LI XML Generator - Automated Report</p>
+                    <p>VodafoneZiggo Network Operations</p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Plain text version
+            text_body = f"""
+            EVE LI XML Generation Report
+            ============================
+            
+            Status: {status_text}
+            Device Type: {device_label}
+            Timestamp: {timestamp}
+            Devices Processed: {device_count}
+            {f'Generated File: {os.path.basename(xml_file)}' if xml_file else ''}
+            
+            {'Error: ' + error_message if error_message else ''}
+            
+            View dashboard: {notifier.web_url}/dashboard
+            """
+            
+            notifier.send_email(subject, html_body, text_body)
+            self.logger.info(f"Email notification sent to {len(notifier.to_emails)} recipient(s)")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send email notification: {e}")
 
 
 def main():
