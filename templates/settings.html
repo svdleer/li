@@ -258,6 +258,31 @@
                             <i class="bi bi-info-circle"></i> <strong>Note:</strong> For Gmail, you need to create an "App Password" 
                             instead of using your regular password. Go to Google Account Settings → Security → 2-Step Verification → App Passwords.
                         </div>
+                        
+                        <hr>
+                        
+                        <!-- Test Email Button -->
+                        <h6 class="mb-3"><i class="bi bi-bug"></i> Test Email Notifications</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="text-muted">Send test emails to verify your configuration before saving.</p>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-success" onclick="testEmail('success', 'vfz')">
+                                        <i class="bi bi-check-circle"></i> Test Success (CMTS)
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="testEmail('failure', 'vfz')">
+                                        <i class="bi bi-x-circle"></i> Test Failure (CMTS)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="testEmail('success', 'pe')">
+                                        <i class="bi bi-check-circle"></i> Test Success (PE)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" onclick="testEmail('failure', 'pe')">
+                                        <i class="bi bi-x-circle"></i> Test Failure (PE)
+                                    </button>
+                                </div>
+                                <div id="emailTestResult" class="mt-3"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
