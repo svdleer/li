@@ -1199,8 +1199,8 @@ def search_page():
             netshot_client = get_netshot_client()
             
             # Get all devices (CMTS and PE)
-            cmts_devices = netshot_client.get_cmts_devices()
-            pe_devices = netshot_client.get_pe_devices()
+            cmts_devices = netshot_client.get_cmts_devices(force_refresh=False)
+            pe_devices = netshot_client.get_pe_devices(force_refresh=False)
             all_devices = cmts_devices + pe_devices
             
             logger.info(f"Search query: '{query}', checking {len(all_devices)} devices")
@@ -1717,7 +1717,7 @@ def devices():
                 logger.error(f"DHCP cache lookup failed: {cache_err}", exc_info=True)
         
         if device_type in ['all', 'pe']:
-            all_pe = netshot_client.get_pe_devices(force_refresh)
+            all_pe = netshot_client.get_pe_devices(force_refresh=force_refresh)
             # Filter out [NONAME] devices
             filtered_pe = [d for d in all_pe if d.get('name') != '[NONAME]' and d.get('oss10_hostname') != '[NONAME]']
             sorted_pe = sorted(filtered_pe, key=lambda d: (d.get('oss10_hostname') or d.get('name', '')).lower())
