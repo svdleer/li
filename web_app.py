@@ -2562,7 +2562,7 @@ def api_devices():
         
         devices = []
         if device_type in ['all', 'cmts']:
-            all_cmts = netshot_client.get_cmts_devices()
+            all_cmts = netshot_client.get_cmts_devices(force_refresh=False)
             # Show all CMTS devices
             cmts_devices = all_cmts
             for device in cmts_devices:
